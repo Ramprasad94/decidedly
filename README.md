@@ -5,7 +5,7 @@
 
 > **The meeting is the write-up.**
 
-[![Use it now in your browser](https://img.shields.io/badge/Use%20it%20now-in%20your%20browser-2f6f4f?style=for-the-badge)](https://www.ramprasadbommaganty.com/decidedly/board.html)
+[![Use it now in your browser](https://img.shields.io/badge/Use%20it%20now-in%20your%20browser-a15d0e?style=for-the-badge)](https://www.ramprasadbommaganty.com/decidedly/board.html)
 &nbsp;
 [![Download board.html](https://img.shields.io/badge/Download-board.html-24292f?style=for-the-badge&logo=html5&logoColor=white)](https://github.com/Ramprasad94/decidedly/releases/latest/download/board.html)
 
@@ -90,7 +90,7 @@ Open `board.html` and find the `<script type="application/json" id="model">` blo
 
 - **`cols`** defines a section's grid. `"edit": true` makes a cell inline-editable; `"pick": "decision"` turns it into a click-to-cycle chip driven by `vocab.decision`; `"detail": true` moves the column behind the expand toggle.
 - **`fill`** names the column that drives a row's colour and counts toward the meter — usually the decision column.
-- **`vocab.tone`** maps each pick-list value to `done` (filled green ✓), `ok` (green outline), `warn` (amber), or nothing (open). Change the palette via the `--accent` / `--warn` CSS variables near the top of the `<style>` block.
+- **`vocab.tone`** maps each pick-list value to `done` (filled ✓), `ok` (outline), `warn` (blue — needs attention), or nothing (open). The `done`/`ok` states follow the brand accent (amber by default); change the palette via the `--accent`, `--warn`, and `--danger` CSS variables near the top of the `<style>` block.
 
 ### Sequence sections
 
