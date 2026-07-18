@@ -2,11 +2,11 @@
 
 > **The meeting is the write-up.**
 
-[![Use it now in your browser](https://img.shields.io/badge/Use%20it%20now-in%20your%20browser-2f6f4f?style=for-the-badge)](https://ramprasad94.github.io/decidedly/board.html)
+[![Use it now in your browser](https://img.shields.io/badge/Use%20it%20now-in%20your%20browser-2f6f4f?style=for-the-badge)](https://www.ramprasadbommaganty.com/decidedly/board.html)
 &nbsp;
 [![Download board.html](https://img.shields.io/badge/Download-board.html-24292f?style=for-the-badge&logo=html5&logoColor=white)](https://github.com/Ramprasad94/decidedly/releases/latest/download/board.html)
 
-A single HTML file you open in a browser to **run a discovery session and walk out with the decisions captured** — nothing installed, nothing to host, no data leaving the room.
+A single HTML file you open in a browser to **run a discovery session and walk out with the decisions captured** — nothing installed, nothing to host, no data leaving the room. Export what the room decided as JSON, Excel, a frozen HTML snapshot, or PDF.
 
 It's the artifact I reach for when I'm facilitating a requirements or discovery call and I don't want to be the bottleneck typing into a spreadsheet while ten people wait. You put the board on the screen, work the room, and click as decisions land. When you're done, you export what the room actually decided as JSON, Excel, or a frozen HTML snapshot.
 
@@ -15,9 +15,9 @@ It's the artifact I reach for when I'm facilitating a requirements or discovery 
 
 ## Get it
 
-**It's one self-contained file — `board.html` (~82 KB). No install, no dependencies, no other files to download.** The JSON model, the CSS, and all the JavaScript are inlined into that single file; there isn't a single network call in it.
+**It's one self-contained file — `board.html` (~86 KB). No install, no dependencies, no other files to download.** The JSON model, the CSS, and all the JavaScript are inlined into that single file; there isn't a single network call in it.
 
-- **Use it now, in your browser:** **[ramprasad94.github.io/decidedly/board.html](https://ramprasad94.github.io/decidedly/board.html)**. It runs instantly, and because nothing in the file phones home, nothing leaves your machine after it loads. *(Live once Pages is enabled: Settings → Pages → Deploy from branch → `main` / root.)*
+- **Use it now, in your browser:** **[www.ramprasadbommaganty.com/decidedly/board.html](https://www.ramprasadbommaganty.com/decidedly/board.html)**. It runs instantly, and because nothing in the file phones home, nothing leaves your machine after it loads.
 - **Or download and run offline:** grab `board.html` from the [latest release](https://github.com/Ramprasad94/decidedly/releases/latest) — or **Code → Download ZIP**, or open the file and right-click *Raw* → *Save As* — then **double-click it**. It works with no internet at all, which is the point: it runs on a locked-down client laptop with no admin rights.
 
 You only ever need `board.html`. Everything else here is documentation. Clone the repo only if you want to fork and modify the source:
@@ -39,25 +39,26 @@ Three things make it worth carrying into a real client meeting:
 ## Use it in five minutes
 
 1. **Download `board.html`.** That's the whole thing.
-2. **Open it in a browser.** You'll see a sample board for a fictional retail returns project ("OmniCart"). Click around — cycle a decision chip, park a row, expand a detail, hit Export Excel — to see how it behaves.
+2. **Open it in a browser.** You'll see a sample board for a fictional retail returns project ("OmniCart"). Click around — cycle a decision chip, park a row, expand a detail, open the **Export** menu and try Excel — to see how it behaves.
 3. **Make it yours, two ways:** hit **Edit** in the toolbar to rewrite titles, headers, options and steps in place and add/remove rows and sections — then Export JSON to save it. Or, if you'd rather, open `board.html` in a text editor and edit the `MODEL` block near the top (plain JSON, clearly marked). Everything on screen is rendered from that one object; you never touch the code underneath either way.
 4. **Run your session.** Put it on the screen and work the room. Decisions colour the rows; the meter (top-right) tracks how many are resolved.
-5. **Export before you close the tab.** The "● unexported changes" badge is your reminder. Export JSON if you want to keep working on it later; Export Excel or Save HTML to hand something to the team.
+5. **Export before you close the tab.** The "● unexported changes" badge is your reminder. From the **Export** menu: JSON if you want to keep working on it later; Excel, Save HTML, or PDF to hand something to the team.
 
 ## What's on the board
 
 | Feature | What it does |
 |---|---|
-| **Decision chips** | Click to move a row through your pick-list (blank → Needs definition → Agreed → Confirmed). The chip colour flows to the whole row, so the room can see at a glance what's settled and what's still open. |
-| **Custom pick-list** | In **Edit** mode, a small editor lets you rename, recolour (green / amber / neutral), reorder, add or delete the decision values. Renaming cascades everywhere — the tone map and every row already holding that value follow, so the meter stays honest. |
+| **Decision chips** | Click to move a row through your pick-list (blank → Needs definition → Agreed → Confirmed). Each state reads distinctly — *Agreed* is an outlined green chip, *Confirmed* fills in with a ✓, *Needs definition* tints the row amber — so the room sees at a glance what's settled and what's still open. |
+| **Session-complete cue** | When every row is resolved the meter reads "✓ All N resolved" and a calm banner appears: the session's captured, export or copy it. No more guessing whether you're done. |
+| **Custom pick-list** | In **Edit** mode, a small editor lets you rename, recolour (green outline / green ✓ / amber / neutral), reorder, add or delete the decision values. Renaming cascades everywhere — the tone map and every row already holding that value follow, so the meter stays honest. |
 | **Light / dark toggle** | A **☀ / ☾** button in the toolbar. It seeds from your OS the first time, then remembers your pick. **Save HTML** freezes whatever theme is on screen into the snapshot, so a client sees exactly what you saw regardless of their machine. |
-| **Brand colour** | The swatch in the toolbar recolours the whole board to a client's or your firm's colour. The soft tint and the text-on-colour are derived automatically, so any hue stays readable in both light and dark. Stored in the model — it exports and re-imports. |
+| **Brand colour** | The swatch in the toolbar drives the board's accents — chips, tags, the meter, the wordmark — with your firm's or the client's colour. The header itself stays neutral in both themes (no slab of colour), and the soft tint and text-on-colour are derived automatically so any hue stays readable. Stored in the model — it exports and re-imports. |
 | **Logos** | Two slots in **Edit** mode — your firm on the left, the client on the right — for a co-branded deliverable. Images are inlined (downscaled on a canvas, no upload anywhere), so they ride along in Save HTML and the JSON. |
 | **Screens** | A `kind:"screens"` section is a captioned screenshot gallery. Add an image with the button or just paste one (Ctrl / ⌘ + V). Images inline into the file; captions export to Excel. |
 | **Edit mode** | Hit **Edit** in the toolbar and the whole board becomes editable — section titles, column headers, the spotlight text, actors, all of it — with dashed buttons to add or remove rows, sections, options and steps. Customise the board in the browser, no JSON required. Export JSON to keep your version. |
 | **Session metadata** | Optional date / facilitator / present-count under the title (editable in Edit mode). Provenance that makes an exported board read as a deliverable, not a scratchpad — it shows in every export. |
-| **Print / PDF** | Ctrl+P gives a clean, branded PDF: the toolbar drops away, every section and detail expands, logos and brand colour stay, and the palette forces to light (whatever theme you're viewing) so it prints well. |
-| **Copy summary** | One click copies the decisions and parked items as markdown, ready to paste into an email or Teams the moment the session ends. It runs the leak check first — it's client-facing. |
+| **Print / PDF** | **Export → PDF** (or Ctrl+P) gives a clean, branded PDF: the toolbar drops away, every section and detail expands, logos and brand colour stay, and the palette forces to light (whatever theme you're viewing) so it prints well. |
+| **Copy summary** | In the **Export** menu — one click copies the decisions and parked items as markdown, ready to paste into an email or Teams the moment the session ends. It runs the leak check first — it's client-facing. |
 | **Filter** | Cycle the view between All / Unresolved / Parked to focus the room during wrap-up. View-only: every export still uses the full board. |
 | **Leak check** | Keep internal notes off the client screen. Put your own internal words/phrases in the model's `leaks` list; the **Leak check** button scans every cell and shows what it found and where. The client-facing exports (Excel, HTML, Copy summary) run the same scan automatically and stop you the first time they hit something. Save HTML also **strips the `leaks` list itself** from the snapshot, so your denylist never ships to the client. And because leak check reads text, not pixels, any embedded logos or screenshots prompt a separate "check these images" confirmation before a client export. It flags — *you* decide what's confidential. |
 | **Sequence diagram** | A `sequence` section draws a live lane diagram from a table of steps. Add or change a step (or an actor) and the picture above redraws. The steps export to Excel as a From / To / Message sheet. |
@@ -66,8 +67,9 @@ Three things make it worth carrying into a real client meeting:
 | **Park button** | Anything you can't close goes to the Parking lot with one click — an owned follow-up, not a lost thread. |
 | **Detail rows** | Long reasoning tucks behind a "▸ detail" toggle instead of bloating the cell. Still exported — the workbook keeps the *why*. |
 | **Exit criteria** | Each section carries its "Leaving with" chips — the conditions for calling that topic done. On the board, not in someone's head. |
-| **State + guard** | Everything persists to `localStorage`; a badge and a leave-the-page warning keep you from losing a session's work. |
-| **Three exports** | JSON (re-imports here), Excel (real `.xlsx`, one sheet per section), HTML (a frozen snapshot of the current state). |
+| **State + guard** | Everything persists to `localStorage`; a badge and a leave-the-page warning keep you from losing a session's work. If storage ever fills up, edits stay in memory and the badge warns you rather than throwing the change away. |
+| **Accessible & semantic** | Real `<h1>`/`<h2>` headings, `lang` set, editable cells carry ARIA labels, and text clears AA contrast — usable with a screen reader or keyboard, not just a mouse. |
+| **Four exports + Copy** | All under one **Export** menu: JSON (re-imports here), Excel (real `.xlsx`, one sheet per section), Save HTML (a frozen snapshot of the current state), PDF, and Copy summary. |
 
 ## Customising the model
 
@@ -78,7 +80,7 @@ Open `board.html` and find the `<script type="application/json" id="model">` blo
   "meta": { "title": "...", "subtitle": "..." },
   "vocab": {
     "decision": ["", "Needs definition", "Agreed", "Confirmed"],
-    "tone": { "Confirmed": "ok", "Agreed": "ok", "Needs definition": "warn" }
+    "tone": { "Confirmed": "done", "Agreed": "ok", "Needs definition": "warn" }
   },
   "sections": [
     {
@@ -103,7 +105,7 @@ A few conventions worth knowing:
 
 - **`cols`** defines a section's grid. `"edit": true` makes a cell inline-editable; `"pick": "decision"` turns it into a click-to-cycle chip driven by `vocab.decision`; `"detail": true` moves the column behind the expand toggle.
 - **`fill`** names the column that drives a row's colour and counts toward the meter. Usually the decision column.
-- **`vocab.tone`** maps each pick-list value to `ok` (green), `warn` (amber), or nothing (open). Change the palette by editing the `--accent` / `--warn` CSS variables near the top of the `<style>` block.
+- **`vocab.tone`** maps each pick-list value to `done` (filled green ✓, a final state), `ok` (green outline), `warn` (amber), or nothing (open). Change the palette by editing the `--accent` / `--warn` CSS variables near the top of the `<style>` block.
 
 ### Sequence sections (the live diagram)
 
@@ -131,7 +133,7 @@ Discovery boards go on a shared screen, so your internal prep notes must not rid
 "leaks": ["internal", "don't reopen", "confidential", "our estimate", "TODO", "/\\bAB\\d+\\b/"]
 ```
 
-Each entry is a case-insensitive substring; wrap it in `/ … /` to use a regex (the last example catches ticket IDs like `AB12`). The **Leak check** toolbar button scans every cell and lists what it found and where. **Export Excel** and **Save HTML** — the two things you hand to a client — run the same scan and block the first time they find a match, so nothing slips out by accident. (Export JSON doesn't gate: that's your own working copy.) The tool only flags; you decide what counts as a leak by what you put in the list. The sample ships with one deliberate internal note in a detail cell so you can watch the check catch it.
+Each entry is a case-insensitive substring; wrap it in `/ … /` to use a regex (the last example catches ticket IDs like `AB12`). The **Leak check** toolbar button scans every cell and lists what it found and where. The client-facing outputs — **Excel**, **Save HTML**, **PDF**, and **Copy summary** — run the same scan and block the first time they find a match, so nothing slips out by accident. (Export JSON doesn't gate: that's your own working copy.) The tool only flags; you decide what counts as a leak by what you put in the list. The sample ships with one deliberate internal note in a detail cell so you can watch the check catch it.
 
 That's the whole API. Add sections, add rows, rename the pick-list to your own vocabulary — or just hit **Edit** and do it all in the browser. If you break the JSON, the board will tell you when it loads.
 
