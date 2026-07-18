@@ -6,74 +6,58 @@
 &nbsp;
 [![Download board.html](https://img.shields.io/badge/Download-board.html-24292f?style=for-the-badge&logo=html5&logoColor=white)](https://github.com/Ramprasad94/decidedly/releases/latest/download/board.html)
 
-A single HTML file you open in a browser to **run a discovery session and walk out with the decisions captured** — nothing installed, nothing to host, no data leaving the room. Export what the room decided as JSON, Excel, a frozen HTML snapshot, or PDF.
+A single HTML file you open in a browser to run a discovery session and capture the decisions as they land. Put it on the screen, work the room, click as things get agreed. Export the result as JSON, Excel, a frozen HTML snapshot, or PDF.
 
-It's the artifact I reach for when I'm facilitating a requirements or discovery call and I don't want to be the bottleneck typing into a spreadsheet while ten people wait. You put the board on the screen, work the room, and click as decisions land. When you're done, you export what the room actually decided as JSON, Excel, or a frozen HTML snapshot.
+I built it because facilitating a requirements call while also typing into a spreadsheet makes you the bottleneck. This keeps the write-up in the meeting itself: every row is a question with a proposed answer, and you accept, amend, or park it live.
 
 <!-- Add a screenshot of your own board here once you've customised it:
      ![The board mid-session](docs/screenshot.png) -->
 
 ## Get it
 
-**It's one self-contained file — `board.html` (~86 KB). No install, no dependencies, no other files to download.** The JSON model, the CSS, and all the JavaScript are inlined into that single file; there isn't a single network call in it.
+It's one self-contained file, `board.html` (~86 KB). The model, CSS, and JavaScript are all inlined; there's no build step, no dependencies, and no network calls in it, so nothing leaves your machine after it loads. That's the point: it runs on a locked-down client laptop with no admin rights.
 
-- **Use it now, in your browser:** **[www.ramprasadbommaganty.com/decidedly/board.html](https://www.ramprasadbommaganty.com/decidedly/board.html)**. It runs instantly, and because nothing in the file phones home, nothing leaves your machine after it loads.
-- **Or download and run offline:** grab `board.html` from the [latest release](https://github.com/Ramprasad94/decidedly/releases/latest) — or **Code → Download ZIP**, or open the file and right-click *Raw* → *Save As* — then **double-click it**. It works with no internet at all, which is the point: it runs on a locked-down client laptop with no admin rights.
+- **In your browser:** [www.ramprasadbommaganty.com/decidedly/board.html](https://www.ramprasadbommaganty.com/decidedly/board.html)
+- **Offline:** download `board.html` from the [latest release](https://github.com/Ramprasad94/decidedly/releases/latest) and double-click it.
 
-You only ever need `board.html`. Everything else here is documentation. Clone the repo only if you want to fork and modify the source:
+You only ever need `board.html`. Clone the repo only if you want to fork the source:
 
 ```
 git clone https://github.com/Ramprasad94/decidedly.git
 ```
 
-## Why it exists
-
-Most discovery sessions end one of two ways: a wall of raw notes nobody reads again, or a "we'll write it up later" that quietly never happens. This board makes the write-up *the session itself*. Every row is a question with a proposed answer; you and the room accept, amend, or park it live. The decision is captured the moment it's made, not reconstructed from memory three days later.
-
-Three things make it worth carrying into a real client meeting:
-
-- **It's one file.** No server, no build step, no CDN, no fonts pulled from the internet. Double-click, it opens. That matters when you're on a locked-down client laptop or a conference-room screen with no admin rights.
-- **Nothing leaves the room.** State lives in the browser's `localStorage`. There's no network call anywhere in the file — you can verify that yourself, it's all right there in the source.
-- **The exports are real.** Export Excel writes an actual `.xlsx` (hand-assembled, no library), so the workbook opens in Excel or Sheets like any other. Export JSON round-trips straight back into the board — it's your source of truth. Save HTML freezes the whole filled-in board as a shareable snapshot.
-
 ## Use it in five minutes
 
-1. **Download `board.html`.** That's the whole thing.
-2. **Open it in a browser.** You'll see a sample board for a fictional retail returns project ("OmniCart"). Click around — cycle a decision chip, park a row, expand a detail, open the **Export** menu and try Excel — to see how it behaves.
-3. **Make it yours, two ways:** hit **Edit** in the toolbar to rewrite titles, headers, options and steps in place and add/remove rows and sections — then Export JSON to save it. Or, if you'd rather, open `board.html` in a text editor and edit the `MODEL` block near the top (plain JSON, clearly marked). Everything on screen is rendered from that one object; you never touch the code underneath either way.
-4. **Run your session.** Put it on the screen and work the room. Decisions colour the rows; the meter (top-right) tracks how many are resolved.
-5. **Export before you close the tab.** The "● unexported changes" badge is your reminder. From the **Export** menu: JSON if you want to keep working on it later; Excel, Save HTML, or PDF to hand something to the team.
+1. **Open `board.html` in a browser.** You'll see a sample board for a fictional retail returns project ("OmniCart"). Click around — cycle a decision chip, park a row, expand a detail, open the **Export** menu.
+2. **Make it yours.** Hit **Edit** in the toolbar to rewrite titles, headers, options, and steps in place and add or remove rows and sections. Or edit the `MODEL` JSON block near the top of the file in a text editor — everything on screen renders from that one object.
+3. **Run your session.** Decisions colour the rows; the meter (top-right) tracks how many are resolved.
+4. **Export before you close the tab.** The "● unexported changes" badge is your reminder. JSON to keep working on it later; Excel, Save HTML, or PDF to hand to the team.
 
 ## What's on the board
 
 | Feature | What it does |
 |---|---|
-| **Decision chips** | Click to move a row through your pick-list (blank → Needs definition → Agreed → Confirmed). Each state reads distinctly — *Agreed* is an outlined green chip, *Confirmed* fills in with a ✓, *Needs definition* tints the row amber — so the room sees at a glance what's settled and what's still open. |
-| **Session-complete cue** | When every row is resolved the meter reads "✓ All N resolved" and a calm banner appears: the session's captured, export or copy it. No more guessing whether you're done. |
-| **Custom pick-list** | In **Edit** mode, a small editor lets you rename, recolour (green outline / green ✓ / amber / neutral), reorder, add or delete the decision values. Renaming cascades everywhere — the tone map and every row already holding that value follow, so the meter stays honest. |
-| **Light / dark toggle** | A **☀ / ☾** button in the toolbar. It seeds from your OS the first time, then remembers your pick. **Save HTML** freezes whatever theme is on screen into the snapshot, so a client sees exactly what you saw regardless of their machine. |
-| **Brand colour** | The swatch in the toolbar drives the board's accents — chips, tags, the meter, the wordmark — with your firm's or the client's colour. The header itself stays neutral in both themes (no slab of colour), and the soft tint and text-on-colour are derived automatically so any hue stays readable. Stored in the model — it exports and re-imports. |
-| **Logos** | Two slots in **Edit** mode — your firm on the left, the client on the right — for a co-branded deliverable. Images are inlined (downscaled on a canvas, no upload anywhere), so they ride along in Save HTML and the JSON. |
-| **Screens** | A `kind:"screens"` section is a captioned screenshot gallery. Add an image with the button or just paste one (Ctrl / ⌘ + V). Images inline into the file; captions export to Excel. |
-| **Edit mode** | Hit **Edit** in the toolbar and the whole board becomes editable — section titles, column headers, the spotlight text, actors, all of it — with dashed buttons to add or remove rows, sections, options and steps. Customise the board in the browser, no JSON required. Export JSON to keep your version. |
-| **Session metadata** | Optional date / facilitator / present-count under the title (editable in Edit mode). Provenance that makes an exported board read as a deliverable, not a scratchpad — it shows in every export. |
-| **Print / PDF** | **Export → PDF** (or Ctrl+P) gives a clean, branded PDF: the toolbar drops away, every section and detail expands, logos and brand colour stay, and the palette forces to light (whatever theme you're viewing) so it prints well. |
-| **Copy summary** | In the **Export** menu — one click copies the decisions and parked items as markdown, ready to paste into an email or Teams the moment the session ends. It runs the leak check first — it's client-facing. |
-| **Filter** | Cycle the view between All / Unresolved / Parked to focus the room during wrap-up. View-only: every export still uses the full board. |
-| **Leak check** | Keep internal notes off the client screen. Put your own internal words/phrases in the model's `leaks` list; the **Leak check** button scans every cell and shows what it found and where. The client-facing exports (Excel, HTML, Copy summary) run the same scan automatically and stop you the first time they hit something. Save HTML also **strips the `leaks` list itself** from the snapshot, so your denylist never ships to the client. And because leak check reads text, not pixels, any embedded logos or screenshots prompt a separate "check these images" confirmation before a client export. It flags — *you* decide what's confidential. |
-| **Sequence diagram** | A `sequence` section draws a live lane diagram from a table of steps. Add or change a step (or an actor) and the picture above redraws. The steps export to Excel as a From / To / Message sheet. |
-| **Progress meter** | Fraction of rows resolved, live in the header. A simple "are we done yet." |
-| **Spotlight card** | The one decision the session hangs on, framed as options with what each *buys* and *costs*. Click to pick. |
-| **Park button** | Anything you can't close goes to the Parking lot with one click — an owned follow-up, not a lost thread. |
-| **Detail rows** | Long reasoning tucks behind a "▸ detail" toggle instead of bloating the cell. Still exported — the workbook keeps the *why*. |
-| **Exit criteria** | Each section carries its "Leaving with" chips — the conditions for calling that topic done. On the board, not in someone's head. |
-| **State + guard** | Everything persists to `localStorage`; a badge and a leave-the-page warning keep you from losing a session's work. If storage ever fills up, edits stay in memory and the badge warns you rather than throwing the change away. |
-| **Accessible & semantic** | Real `<h1>`/`<h2>` headings, `lang` set, editable cells carry ARIA labels, and text clears AA contrast — usable with a screen reader or keyboard, not just a mouse. |
-| **Four exports + Copy** | All under one **Export** menu: JSON (re-imports here), Excel (real `.xlsx`, one sheet per section), Save HTML (a frozen snapshot of the current state), PDF, and Copy summary. |
+| **Decision chips** | Click to cycle a row through your pick-list (blank → Needs definition → Agreed → Confirmed). Each state reads distinctly, so the room sees at a glance what's settled. |
+| **Custom pick-list** | In Edit mode, rename, recolour, reorder, add, or delete the decision values. Renames cascade to every row already holding the old value. |
+| **Spotlight card** | The one decision the session hangs on, framed as options with what each buys and costs. Click to pick. |
+| **Park button** | Send anything you can't close to the Parking lot with one click. |
+| **Filter** | Cycle the view between All / Unresolved / Parked to focus wrap-up. View-only; every export uses the full board. |
+| **Progress meter** | Fraction of rows resolved, live in the header. When everything's resolved, a banner confirms the session's captured. |
+| **Sequence diagram** | A `sequence` section draws a live lane diagram from a table of steps and redraws as you edit them. Exports to Excel as a From / To / Message sheet. |
+| **Screens** | A `screens` section is a captioned screenshot gallery. Add an image or paste one (Ctrl / ⌘ + V); it inlines into the file. |
+| **Detail rows** | Long reasoning tucks behind a "▸ detail" toggle instead of bloating the cell. Still exported. |
+| **Exit criteria** | Each section carries its "Leaving with" chips — the conditions for calling that topic done. |
+| **Branding** | A brand-colour swatch drives the accents; two logo slots (your firm, the client) inline into the file for a co-branded deliverable. |
+| **Light / dark toggle** | Seeds from your OS, then remembers your pick. Save HTML freezes the current theme into the snapshot. |
+| **Session metadata** | Optional date / facilitator / present-count under the title. Shows in every export. |
+| **Leak check** | Put your internal words and phrases in the model's `leaks` list; the button scans every cell and shows what it found. Client-facing exports (Excel, HTML, PDF, Copy summary) run the same scan and block on a match. Save HTML strips the `leaks` list itself from the snapshot. See [The leak check](#the-leak-check). |
+| **Exports** | JSON (re-imports here), Excel (real `.xlsx`, hand-assembled, one sheet per section), Save HTML (frozen snapshot), PDF, and Copy summary (decisions as markdown, ready to paste). |
+| **State** | Persists to `localStorage`, with a leave-the-page warning so you don't lose a session. If storage fills, edits stay in memory and the badge warns you. |
+| **Accessible** | Real `<h1>`/`<h2>` headings, `lang` set, ARIA labels on editable cells, AA-contrast text. |
 
 ## Customising the model
 
-Open `board.html` and find the `<script type="application/json" id="model">` block. It looks like this:
+Open `board.html` and find the `<script type="application/json" id="model">` block:
 
 ```json
 {
@@ -101,15 +85,13 @@ Open `board.html` and find the `<script type="application/json" id="model">` blo
 }
 ```
 
-A few conventions worth knowing:
-
 - **`cols`** defines a section's grid. `"edit": true` makes a cell inline-editable; `"pick": "decision"` turns it into a click-to-cycle chip driven by `vocab.decision`; `"detail": true` moves the column behind the expand toggle.
-- **`fill`** names the column that drives a row's colour and counts toward the meter. Usually the decision column.
-- **`vocab.tone`** maps each pick-list value to `done` (filled green ✓, a final state), `ok` (green outline), `warn` (amber), or nothing (open). Change the palette by editing the `--accent` / `--warn` CSS variables near the top of the `<style>` block.
+- **`fill`** names the column that drives a row's colour and counts toward the meter — usually the decision column.
+- **`vocab.tone`** maps each pick-list value to `done` (filled green ✓), `ok` (green outline), `warn` (amber), or nothing (open). Change the palette via the `--accent` / `--warn` CSS variables near the top of the `<style>` block.
 
-### Sequence sections (the live diagram)
+### Sequence sections
 
-A section with `"kind": "sequence"` renders a lane diagram that redraws whenever you edit its steps — no drawing tools, no image files. Add or change a step in the table and the picture above updates on the spot.
+A section with `"kind": "sequence"` renders a lane diagram that redraws whenever you edit its steps:
 
 ```json
 {
@@ -123,28 +105,28 @@ A section with `"kind": "sequence"` renders a lane diagram that redraws whenever
 }
 ```
 
-`from` and `to` are **positions in `actors`**, starting at 0. Set `"dashed": true` for a return/async arrow. In the running board you get a From/To dropdown and a "+ step" button for every step; rename or add actors in **Edit mode**. Steps export to Excel as their own From / To / Message sheet.
+`from` and `to` are positions in `actors`, starting at 0. Set `"dashed": true` for a return/async arrow. In the running board you get a From/To dropdown and a "+ step" button; rename or add actors in Edit mode.
 
 ### The leak check
 
-Discovery boards go on a shared screen, so your internal prep notes must not ride along. Put the words and phrases *you* consider internal into the `leaks` array:
+Discovery boards go on a shared screen, so your internal prep notes must not ride along. Put the words and phrases you consider internal into the `leaks` array:
 
 ```json
 "leaks": ["internal", "don't reopen", "confidential", "our estimate", "TODO", "/\\bAB\\d+\\b/"]
 ```
 
-Each entry is a case-insensitive substring; wrap it in `/ … /` to use a regex (the last example catches ticket IDs like `AB12`). The **Leak check** toolbar button scans every cell and lists what it found and where. The client-facing outputs — **Excel**, **Save HTML**, **PDF**, and **Copy summary** — run the same scan and block the first time they find a match, so nothing slips out by accident. (Export JSON doesn't gate: that's your own working copy.) The tool only flags; you decide what counts as a leak by what you put in the list. The sample ships with one deliberate internal note in a detail cell so you can watch the check catch it.
+Each entry is a case-insensitive substring; wrap it in `/ … /` for a regex (the last example catches ticket IDs like `AB12`). The **Leak check** button scans every cell and lists what it found. Client-facing exports run the same scan and block the first time they hit a match. (Export JSON doesn't gate — that's your working copy.) The sample ships with one deliberate internal note so you can watch the check catch it.
 
-That's the whole API. Add sections, add rows, rename the pick-list to your own vocabulary — or just hit **Edit** and do it all in the browser. If you break the JSON, the board will tell you when it loads.
+That's the whole API. If you break the JSON, the board tells you when it loads.
 
 ## A note on where this came from
 
-I build these for a living — I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. This template is the distilled, client-free version of the boards I generate as part of a larger pipeline that turns a session transcript into the downstream delivery artifacts (Q&A trackers, decision logs, backlog, readouts). I built and refined the whole thing with [Claude Code](https://claude.com/claude-code). The board is the part I could share without any client data attached — so here it is.
+I build these for a living — I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. This template is the client-free version of the boards I generate as part of a larger pipeline that turns a session transcript into downstream delivery artifacts (Q&A trackers, decision logs, backlog, readouts). I built and refined it with [Claude Code](https://claude.com/claude-code). The board is the part I could share without any client data attached — so here it is.
 
 If you use it, I'd genuinely like to hear how it went. Find me at [keepingupwiththecloud.com](https://keepingupwiththecloud.com/).
 
 ## License
 
-MIT — free to use, fork, and modify. One thing to keep: the **Decidedly** name and the author credit in the page footer. MIT already asks that the attribution notice travels with copies, so leave that footer line in place; everything else is yours to change.
+MIT — free to use, fork, and modify. One thing to keep: the **Decidedly** name and the author credit in the page footer. MIT already asks that the attribution notice travels with copies, so leave that footer line in place; everything else is yours.
 
 Created by Ramprasad Bommaganty — [keepingupwiththecloud.com](https://keepingupwiththecloud.com/).
