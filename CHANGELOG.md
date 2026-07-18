@@ -3,6 +3,13 @@
 All notable changes to **Decidedly** are recorded here. The tool is a single
 file (`board.html`); each version is a self-contained release of that file.
 
+## Unreleased
+
+### Added
+- **Download a sequence diagram as PNG** — a ⬇ PNG button under each live
+  diagram rasterises it at 2× in the current theme. It's client-facing, so it
+  runs the same leak check as the other exports before saving.
+
 ## v1.0 — 2026-07-18
 
 First public release. A single, self-contained HTML file for running a

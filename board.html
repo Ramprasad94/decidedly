@@ -15,7 +15,8 @@
         2. Or edit the MODEL JSON below directly in a text editor.
       Either way, Export JSON to save your version.
     • A "sequence" section draws a live diagram from a table of steps — add or change a
-      step and the picture above redraws. (See the last section in the sample.)
+      step and the picture above redraws, and "⬇ PNG" downloads it as an image.
+      (See the last section in the sample.)
     • Nothing leaves your machine. State lives in localStorage; a "● unexported changes"
       badge reminds you to snapshot before you close the tab.
     • Export: JSON (re-imports here), Excel (a real .xlsx, written by hand — no libraries,
@@ -504,7 +505,8 @@ let UI = Object.assign(DEFAULT_UI(), fresh && restore(KEY + ':ui'));
 let dirty = false;
 let storageFull = false;  // set when localStorage hits quota (usually inlined screenshots)
 let leakHits = null;      // last Leak-check results (transient view state, not persisted)
-let pendingExport = null; // which client-facing export is waiting behind the leak banner ('xlsx'|'html'|'copy')
+let pendingExport = null; // which client-facing export is waiting behind the leak banner ('xlsx'|'html'|'copy'|'pdf'|'png')
+let pngTarget = null;      // section index for a pending 'png' export (which diagram)
 
 /* ---- theme: light/dark toggle. Seeds from the OS once, then remembers your pick.
    A saved snapshot carries data-theme baked on <html>, so it opens in the frozen theme
@@ -737,6 +739,41 @@ function seqSvg(s){
   return svg + `</svg>`;
 }
 
+/* ---- download a sequence diagram as a PNG. The on-screen SVG paints with currentColor and
+   CSS vars (var(--accent-soft) etc.); neither survives when an <svg> is rasterised standalone,
+   so we clone it and inject a <style> that pins the current theme's colours + font before
+   drawing to a canvas. Honours the live theme, like Save HTML. ---- */
+function seqPng(si){
+  const src = document.querySelector(`.fig[data-fig="${si}"] svg`);
+  if(!src){ alert('Could not find that diagram.'); return; }
+  const rs = getComputedStyle(document.documentElement);
+  const ink = getComputedStyle(src).color;                       // resolves currentColor (.fig svg{color:var(--ink)})
+  const card = rs.getPropertyValue('--card').trim() || '#fff';
+  const vars = ['--accent-soft','--line','--sans'].map(v => `${v}:${rs.getPropertyValue(v).trim()}`).join(';');
+  const vb = src.viewBox.baseVal, W = vb.width, H = vb.height, SCALE = 2;
+
+  const svg = src.cloneNode(true);
+  svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+  svg.setAttribute('width', W); svg.setAttribute('height', H);
+  svg.removeAttribute('style');                                  // drop max-width:100% so it rasterises at full size
+  const style = document.createElementNS('http://www.w3.org/2000/svg', 'style');
+  style.textContent = `svg{color:${ink};${vars}} text{font-family:var(--sans)}`;
+  svg.insertBefore(style, svg.firstChild);
+
+  const url = URL.createObjectURL(new Blob([new XMLSerializer().serializeToString(svg)], {type:'image/svg+xml'}));
+  const img = new Image();
+  img.onload = () => {
+    const cv = document.createElement('canvas'); cv.width = W*SCALE; cv.height = H*SCALE;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = card; ctx.fillRect(0, 0, cv.width, cv.height);   // opaque theme background, not transparent
+    ctx.setTransform(SCALE, 0, 0, SCALE, 0, 0); ctx.drawImage(img, 0, 0);
+    URL.revokeObjectURL(url);
+    cv.toBlob(b => download(slug() + '-diagram.png', b), 'image/png');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); alert('Could not render the diagram to PNG.'); };
+  img.src = url;
+}
+
 function sequence(s, si){
   const A = s.actors || [];
   const opts = sel => A.map((a,i) => `<option value="${i}"${i===(+sel||0)?' selected':''}>${esc(a)}</option>`).join('');
@@ -749,7 +786,8 @@ function sequence(s, si){
   const actorbar = UI.edit ? `<div class="ec actorbar"><span class="lbl">Actors</span>${
       A.map((a,ai) => `<span class="actor">${ce(`sections.${si}.actors.${ai}`, a, 'name')}${delBtn('delactor', si+'.'+ai, 'remove actor')}</span>`).join('')
     }<button class="add" data-addactor="${si}">+ actor</button></div>` : '';
-  return `<div class="fig">${seqSvg(s)}</div>${actorbar}
+  return `<div class="fig" data-fig="${si}">${seqSvg(s)}</div>
+    <div class="ec"><button class="mini" data-pngseq="${si}" title="Download this diagram as a PNG">⬇ PNG</button></div>${actorbar}
     <div class="seqwrap"><table class="seq"><thead><tr>
       <th style="width:160px">From</th><th style="width:160px">To</th><th>Message</th><th style="width:34px"></th>
     </tr></thead><tbody>${rows}</tbody></table>
@@ -880,7 +918,7 @@ function leakBanner(){
   const more = leakHits.length>20 ? `<li>…and ${leakHits.length-20} more</li>` : '';
   // when an export is blocked, offer a deliberate, labelled override instead of a silent second click
   const proceedLbl = pendingExport === 'copy' ? 'Copy summary anyway'
-    : `${ {xlsx:'Export Excel', html:'Save HTML', pdf:'Export PDF'}[pendingExport] || 'Export' } anyway`;
+    : `${ {xlsx:'Export Excel', html:'Save HTML', pdf:'Export PDF', png:'Download PNG'}[pendingExport] || 'Export' } anyway`;
   const proceed = pendingExport ? `<div class="ec" style="padding:8px 0 0"><button class="mini del" data-leakproceed="1">${proceedLbl}</button></div>` : '';
   return `<div class="leakbar warn" role="status">${x}⚠ <b>${leakHits.length} possible leak${leakHits.length>1?'s':''}</b> — text a client shouldn't see. Fix it, or edit the denylist (<code>leaks</code>) if it's a false alarm, then re-check.<ul>${items}${more}</ul>${proceed}</div>`;
 }
@@ -995,6 +1033,13 @@ function bind(){
     M.sections[+si].steps[+ri][field] = +el.value; save(); render();
   });
 
+  // download a sequence diagram as PNG — client-facing, so it runs the leak gate first
+  document.querySelectorAll('[data-pngseq]').forEach(el => el.onclick = () => {
+    pngTarget = +el.dataset.pngseq;
+    if(guardLeaks('png')) return;
+    seqPng(pngTarget);
+  });
+
   // park / unpark
   document.querySelectorAll('[data-park]').forEach(el => el.onclick = () => {
     const [si, ri] = el.dataset.park.split('.').map(Number);
@@ -1040,7 +1085,7 @@ function bind(){
     const act = pendingExport; leakHits = null; pendingExport = null;
     if((act === 'xlsx' || act === 'html') && guardImages(act)) return;
     if(act === 'xlsx' || act === 'html') clearDirty();   // print/copy aren't file exports — match the direct paths, keep the badge
-    if(act === 'xlsx') exportXlsx(); else if(act === 'html') exportHtml(); else if(act === 'copy') doCopy(); else if(act === 'pdf') window.print();
+    if(act === 'xlsx') exportXlsx(); else if(act === 'html') exportHtml(); else if(act === 'copy') doCopy(); else if(act === 'pdf') window.print(); else if(act === 'png') seqPng(pngTarget);
     flashSaved(); render();
   });
   // image-gate: dismiss, or acknowledge and export

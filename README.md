@@ -43,7 +43,7 @@ git clone https://github.com/Ramprasad94/decidedly.git
 | **Park button** | Send anything you can't close to the Parking lot with one click. |
 | **Filter** | Cycle the view between All / Unresolved / Parked to focus wrap-up. View-only; every export uses the full board. |
 | **Progress meter** | Fraction of rows resolved, live in the header. When everything's resolved, a banner confirms the session's captured. |
-| **Sequence diagram** | A `sequence` section draws a live lane diagram from a table of steps and redraws as you edit them. Exports to Excel as a From / To / Message sheet. |
+| **Sequence diagram** | A `sequence` section draws a live lane diagram from a table of steps and redraws as you edit them. Download it as a PNG with the ⬇ button, or export to Excel as a From / To / Message sheet. |
 | **Screens** | A `screens` section is a captioned screenshot gallery. Add an image or paste one (Ctrl / ⌘ + V); it inlines into the file. |
 | **Detail rows** | Long reasoning tucks behind a "▸ detail" toggle instead of bloating the cell. Still exported. |
 | **Exit criteria** | Each section carries its "Leaving with" chips — the conditions for calling that topic done. |
@@ -121,7 +121,7 @@ That's the whole API. If you break the JSON, the board tells you when it loads.
 
 ## A note on where this came from
 
-I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. I built this to help with one of my own projects — a client-free version of the boards I use to turn a discovery session into downstream delivery artifacts — and figured it was worth sharing with others.
+I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. I built this to help with one of my own client projects and figured it was worth sharing with others.
 
 If you use it, I'd genuinely like to hear how it went. Find me at [keepingupwiththecloud.com](https://keepingupwiththecloud.com/) or on [<img src="https://cdn.simpleicons.org/linkedin/0A66C2" width="14" alt=""> LinkedIn](https://www.linkedin.com/in/ramprasad-bommaganty/).
 
