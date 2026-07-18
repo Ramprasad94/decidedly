@@ -2,6 +2,10 @@
 
 > **The meeting is the write-up.**
 
+[![Use it now in your browser](https://img.shields.io/badge/Use%20it%20now-in%20your%20browser-2f6f4f?style=for-the-badge)](https://ramprasad94.github.io/decidedly/board.html)
+&nbsp;
+[![Download board.html](https://img.shields.io/badge/Download-board.html-24292f?style=for-the-badge&logo=html5&logoColor=white)](https://github.com/Ramprasad94/decidedly/releases/latest/download/board.html)
+
 A single HTML file you open in a browser to **run a discovery session and walk out with the decisions captured** — nothing installed, nothing to host, no data leaving the room.
 
 It's the artifact I reach for when I'm facilitating a requirements or discovery call and I don't want to be the bottleneck typing into a spreadsheet while ten people wait. You put the board on the screen, work the room, and click as decisions land. When you're done, you export what the room actually decided as JSON, Excel, or a frozen HTML snapshot.
