@@ -1,4 +1,7 @@
-# Decidedly
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/decidedly-dark.png">
+  <img alt="Decidedly" src="assets/decidedly-light.png" width="260">
+</picture>
 
 > **The meeting is the write-up.**
 
