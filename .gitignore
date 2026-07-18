@@ -1,0 +1,7 @@
+# macOS
+.DS_Store
+
+# Dev notes — not part of the shipped tool
+Feature ideas.md
+Feature-decisions.md
+.obsidian/

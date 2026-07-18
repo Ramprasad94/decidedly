@@ -1,0 +1,1322 @@
+<!--
+  Decidedly — a single-file, offline, live-fill board for running a
+  discovery / requirements session and walking out with the decisions captured.
+  The meeting is the write-up.
+
+  HOW IT WORKS (the 30-second version):
+    • Everything you see is rendered from the MODEL object below (the <script id="model"> block).
+    • During the session you fill cells inline and click the decision chips. The board
+      colours each row by its decision and tracks how many are resolved (the meter, top-right).
+    • Two ways to make it your own:
+        1. Hit "Edit" in the toolbar — titles, headers, options, actors and the whole
+           structure become editable, with buttons to add/remove rows and sections. No code.
+        2. Or edit the MODEL JSON below directly in a text editor.
+      Either way, Export JSON to save your version.
+    • A "sequence" section draws a live diagram from a table of steps — add or change a
+      step and the picture above redraws. (See the last section in the sample.)
+    • Nothing leaves your machine. State lives in localStorage; a "● unexported changes"
+      badge reminds you to snapshot before you close the tab.
+    • Export: JSON (re-imports here), Excel (a real .xlsx, written by hand — no libraries,
+      still one offline file), or Save HTML (this exact page, filled in, as a snapshot).
+
+  License: MIT. Built with Claude Code. Customise freely.
+-->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Decidedly</title>
+
+<!-- ======================================================================
+     THE MODEL — edit this (or use the "Edit" button in the running board).
+     ====================================================================== -->
+<script type="application/json" id="model">
+{
+  "meta": {
+    "title": "OmniCart — Returns Discovery",
+    "subtitle": "Session 3 · Returns & Refunds",
+    "date": "18 Jul 2026",
+    "facilitator": "You",
+    "present": "6 · Ops, Design, Merchandising, Support, Build, PM",
+    "footer": "Sample content — a fictional retail programme. Replace with your own."
+  },
+
+  "vocab": {
+    "decision": ["", "Needs definition", "Agreed", "Confirmed"],
+    "tone": { "": "open", "Confirmed": "ok", "Agreed": "ok", "Needs definition": "warn" },
+    "help": "Click the chip to move a row through: blank → Needs definition → Agreed → Confirmed."
+  },
+
+  "//leaks": "Words/phrases that should never reach a client screen. Leak check scans every cell for these before you present or export. Add your own internal vocabulary; wrap an entry in / / for a regex, e.g. \"/\\\\b[A-Z]{1,3}\\\\d+\\\\b/\" to catch ticket IDs like AB12.",
+  "leaks": ["internal", "don't reopen", "do not reopen", "off the record", "confidential", "our estimate", "TODO", "FIXME"],
+
+  "spotlight": {
+    "q": "When a customer starts a return, what do we offer first — a refund, or an exchange?",
+    "picked": "b",
+    "note": "The room leaned to (b) — lead with an exchange, fall back to a refund. Merchandising to confirm which categories opt out.",
+    "options": [
+      { "id": "a", "name": "Refund by default, exchange on request",
+        "buys": "Simplest flow; matches what most customers expect",
+        "costs": "Leaves easy revenue on the table when a swap would have kept the sale" },
+      { "id": "b", "name": "Offer an exchange first, refund if they decline",
+        "buys": "Keeps the revenue on same-size or colour swaps without pressuring anyone",
+        "costs": "One extra screen; needs a per-category opt-out for final-sale items" },
+      { "id": "c", "name": "Let the customer choose, no default nudge",
+        "buys": "Most neutral; nobody feels steered",
+        "costs": "Converts the fewest exchanges; wastes the moment of intent" }
+    ]
+  },
+
+  "sections": [
+    {
+      "id": "current",
+      "title": "How returns work today",
+      "tag": "current state",
+      "intro": "What the room confirmed about the process as it runs now. Fill any cell; the Decision chip is how the row gets marked.",
+      "fill": "decision",
+      "cols": [
+        { "f": "n",        "h": "#",              "w": 34 },
+        { "f": "topic",    "h": "Topic",          "w": 190 },
+        { "f": "heard",    "h": "What we heard",   "edit": true },
+        { "f": "decision", "h": "Decision",        "pick": "decision", "w": 150 },
+        { "f": "owner",    "h": "Owner",           "edit": true, "w": 120 },
+        { "f": "detail",   "h": "Detail / why",    "edit": true, "detail": true }
+      ],
+      "rows": [
+        { "n": 1, "topic": "Return window",
+          "heard": "30 days from delivery, no exceptions in the current system.",
+          "decision": "Confirmed", "owner": "Priya (Ops)",
+          "detail": "Marketing has asked about a 60-day window for loyalty tier customers — logged as a future-state question, not today's behaviour." },
+        { "n": 2, "topic": "Who approves a return",
+          "heard": "Any agent can approve up to $200; over that goes to a team lead.",
+          "decision": "Agreed", "owner": "Priya (Ops)",
+          "detail": "The $200 threshold is a hardcoded value in the legacy tool. Everyone agreed it should be configurable in the new build." },
+        { "n": 3, "topic": "Exchange option",
+          "heard": "The portal only offers a refund today; an exchange is a manual request an agent handles over chat.",
+          "decision": "Needs definition", "owner": "Merchandising",
+          "detail": "This feeds today's spotlight decision. Merch wants exchanges pushed to protect revenue; Support worries about a clunkier flow. (Internal: don't reopen the restocking-fee debate with them — we already conceded it.)" },
+        { "n": 4, "topic": "Restocking fee",
+          "heard": "No restocking fee is charged today under any circumstance.",
+          "decision": "Confirmed", "owner": "Priya (Ops)",
+          "detail": "" },
+        { "n": 5, "topic": "Damaged-in-transit returns",
+          "heard": "Handled as a separate manual process over email with the carrier.",
+          "decision": "", "owner": "",
+          "detail": "Nobody in the room owned this end to end — flagged to park and pick up in the logistics session." }
+      ],
+      "close": ["Exchange-vs-refund decision made", "Every current-state row confirmed or parked"]
+    },
+
+    {
+      "id": "future",
+      "title": "What we'll build",
+      "tag": "future state",
+      "intro": "The agreed direction. A row here should trace to something the room actually asked for — not something we assumed.",
+      "fill": "decision",
+      "cols": [
+        { "f": "n",        "h": "#",             "w": 34 },
+        { "f": "topic",    "h": "Capability",    "w": 200 },
+        { "f": "heard",    "h": "What it should do", "edit": true },
+        { "f": "decision", "h": "Decision",      "pick": "decision", "w": 150 },
+        { "f": "owner",    "h": "Owner",         "edit": true, "w": 120 },
+        { "f": "detail",   "h": "Notes",         "edit": true, "detail": true }
+      ],
+      "rows": [
+        { "n": 1, "topic": "Self-service returns portal",
+          "heard": "Customer starts a return online, prints a label, no agent needed for the standard case.",
+          "decision": "Agreed", "owner": "Design",
+          "detail": "Scope is the standard case only. High-value and disputed returns still route to an agent — see row 3." },
+        { "n": 2, "topic": "Configurable approval thresholds",
+          "heard": "Approval limits set per role in config, not hardcoded. Replaces today's fixed $200.",
+          "decision": "Confirmed", "owner": "Build",
+          "detail": "" },
+        { "n": 3, "topic": "Agent escalation path",
+          "heard": "High-value / disputed returns land in an agent queue with the full order history attached.",
+          "decision": "Needs definition", "owner": "Design",
+          "detail": "What counts as 'high value' is the open question — a fixed number, or a percentage of order value? Parked for the pricing session." },
+        { "n": 4, "topic": "Exchange-first flow",
+          "heard": "The returns portal offers a same-item exchange before a refund, with a per-category opt-out.",
+          "decision": "", "owner": "",
+          "detail": "Depends on the spotlight decision. If the room picks (b), this is the design; if (a), it drops to a secondary link." }
+      ],
+      "close": ["Every future-state row traces to a request, not an assumption", "Escalation threshold owner named"]
+    },
+
+    {
+      "id": "flow",
+      "title": "The returns flow, end to end",
+      "tag": "sequence",
+      "kind": "sequence",
+      "intro": "A live sequence diagram. Add or change a step in the table and the picture above redraws. Rename or add actors in Edit mode. (from / to are actor positions, starting at 0.)",
+      "actors": ["Customer", "Returns portal", "Warehouse", "Payments"],
+      "steps": [
+        { "from": 0, "to": 1, "msg": "Start a return" },
+        { "from": 1, "to": 0, "msg": "Refund or exchange?" },
+        { "from": 1, "to": 2, "msg": "Print label, expect item" },
+        { "from": 2, "to": 1, "msg": "Item received & checked" },
+        { "from": 1, "to": 3, "msg": "Release refund" },
+        { "from": 3, "to": 0, "msg": "Refund confirmed" }
+      ]
+    },
+
+    {
+      "id": "screens",
+      "title": "Screens we looked at",
+      "tag": "screens",
+      "kind": "screens",
+      "intro": "Screenshots referenced in the session. Add one with the button, or paste an image (Ctrl / ⌘ + V). Captions export to Excel; the images ride along in Save HTML.",
+      "shots": []
+    }
+  ],
+
+  "parked": []
+}
+</script>
+
+<style>
+  :root{
+    color-scheme:light;      /* tell the browser we theme ourselves — stops Auto Dark Mode from re-tinting text invisible */
+    --ink:#1f2733; --mut:#5b6572; --line:#e2e6ea; --bg:#f4f6f8; --card:#fff;
+    --accent:#2f6f4f;        /* pick your brand colour — this drives the header + confirmed rows */
+    --accent-soft:#eaf5ef;
+    --warn:#c8791d; --warn-soft:#fbf1e3;
+    --open:#fff; --chip:#eef1f4;
+    --head:#2f6f4f;          /* header bar — kept dark enough for white text in both themes */
+    --head-ink:#fff;         /* text on the header bar; without this the light default falls back to dark --ink */
+    --on-accent:#fff;        /* text/icon colour that sits on an accent-filled chip or button */
+    --shadow:0 1px 2px rgba(20,30,45,.05), 0 4px 14px rgba(20,30,45,.05);
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  /* Dark palette. Applies when the OS asks for dark AND the user hasn't forced light,
+     or when the toggle explicitly sets data-theme="dark". The block is duplicated because
+     a media-query rule and a plain attribute rule can't share one declaration block. */
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
+    --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
+    --open:#1a1f27; --chip:#232a34; --head:#173328; --on-accent:#0f2019; --head-ink:#fff;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
+  } }
+  :root[data-theme="dark"]{
+    color-scheme:dark;
+    --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
+    --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
+    --open:#1a1f27; --chip:#232a34; --head:#173328; --on-accent:#0f2019; --head-ink:#fff;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font:14.5px/1.5 var(--sans); color:var(--ink); background:var(--bg); -webkit-font-smoothing:antialiased;}
+
+  /* ---- header / toolbar ---- */
+  header{
+    position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px; flex-wrap:wrap; row-gap:8px;
+    padding:12px 20px; background:var(--head); color:var(--head-ink);
+    box-shadow:0 2px 10px rgba(20,30,45,.12);
+  }
+  /* ponytail: header buttons/meter assume a dark bar (white-ish tints). A very light brand
+     colour flips --head-ink to dark for the title, but the button tints stay light. Fine for
+     the usual saturated corporate colours; revisit only if light-brand headers become common. */
+  header .sep{width:1px; align-self:stretch; background:rgba(255,255,255,.22); margin:0 2px}
+  /* keyboard focus ring — visible for every interactive control (none existed before) */
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  header :focus-visible, .chip:focus-visible, .ck:focus-visible{outline-color:#fff}
+  @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
+  header .ttl{font-weight:700; font-size:18px; line-height:1.15; letter-spacing:-.01em}
+  header .sub{font-size:12px; opacity:.82; margin-top:2px}
+  /* permanent tool wordmark — static, not in the model, so Edit/Reset/Import can't remove it; bakes into exports */
+  .wordmark{align-self:center; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
+    color:var(--head-ink); opacity:.6; padding:3px 8px; border:1px solid rgba(255,255,255,.25); border-radius:6px; white-space:nowrap}
+  header .grow{flex:1}
+  .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap}
+  .meter .bar{width:120px; height:7px; border-radius:5px; background:rgba(255,255,255,.28); overflow:hidden}
+  .meter .fill{display:block; height:100%; width:0; background:#fff; border-radius:5px; transition:width .3s}
+  .badge{font-size:12px; opacity:0; transition:opacity .2s; white-space:nowrap}
+  .badge.on{opacity:1}
+  .hbtn{
+    font-family:inherit; font-size:12.5px; line-height:1.4; padding:5px 10px; border-radius:6px; cursor:pointer; user-select:none;
+    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); color:#fff;
+  }
+  .hbtn:hover{background:rgba(255,255,255,.26)}
+  .hbtn.on{background:#fff; color:var(--head); border-color:#fff; font-weight:600}
+  .hbtn.danger:hover{background:var(--warn); border-color:var(--warn)}
+
+  /* ---- layout ---- */
+  main{max-width:1160px; margin:24px auto 80px; padding:0 20px}
+  .editbar{background:var(--warn-soft); border:1px solid var(--warn); color:var(--ink); border-radius:10px;
+    font-size:13px; padding:10px 14px; margin:18px 0}
+  .leakbar{margin:18px 0; border-radius:10px; padding:10px 14px; font-size:13px}
+  .leakbar.warn{background:var(--warn-soft); border:1px solid var(--warn)}
+  .leakbar.ok{background:var(--accent-soft); border:1px solid var(--accent)}
+  .leakbar ul{margin:8px 0 4px; padding-left:20px}
+  .leakbar li{margin:2px 0}
+  .leakbar code{background:rgba(127,140,160,.18); padding:0 4px; border-radius:3px; font-size:12px}
+  .leakbar .loc{color:var(--mut); font-size:12px}
+  .leakbar .close-x{float:right; cursor:pointer; border:none; background:none; color:var(--mut); font-size:16px}
+  .card{background:var(--card); border:1px solid var(--line); border-radius:12px; box-shadow:var(--shadow); margin:18px 0; overflow:hidden}
+  .card .head{display:flex; align-items:center; gap:10px; padding:14px 18px; cursor:pointer; border-bottom:1px solid var(--line)}
+  .card.shut .head{border-bottom:none}
+  .card .chev{color:var(--mut); font-size:12px; width:16px; background:none; border:none; cursor:pointer; padding:0; font-family:inherit}
+  .card .h-ttl{font-weight:650; font-size:15px}
+  .card .tag{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:20px; font-weight:600}
+  .card.shut .body{display:none}
+  .intro{color:var(--mut); font-size:13px; padding:12px 18px 4px}
+
+  /* ---- spotlight ---- */
+  .spot{background:linear-gradient(180deg,var(--accent-soft),transparent)}
+  .spot .q{font-weight:650; font-size:15.5px; padding:4px 18px 12px}
+  .opts{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:12px; padding:0 18px 8px}
+  .opt{border:1.5px solid var(--line); border-radius:10px; padding:12px 14px; cursor:pointer; background:var(--card); transition:border-color .15s, box-shadow .15s}
+  .opt:hover{border-color:var(--accent)}
+  .opt.pick{border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft)}
+  .opt .tick{float:right; color:var(--accent); font-weight:700; opacity:0}
+  .opt.pick .tick{opacity:1}
+  .opt .oname{font-weight:600; margin-bottom:8px; padding-right:16px}
+  .opt .row{font-size:12.5px; display:flex; gap:6px; margin-top:4px}
+  .opt .k{color:var(--mut); min-width:42px}
+  .spot .note{padding:10px 18px 16px; color:var(--mut); font-size:13px; font-style:italic}
+
+  /* ---- grid ---- */
+  table{width:100%; border-collapse:collapse; font-size:13.5px}
+  thead th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--bg)}
+  tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
+  tbody tr.ok  td{background:var(--accent-soft)}
+  tbody tr.warn td{background:var(--warn-soft)}
+  tbody tr.parked td{opacity:.5}
+  tbody tr:last-child td{border-bottom:none}
+  td.n{color:var(--mut); font-variant-numeric:tabular-nums}
+  td.topic{font-weight:600}
+  .edit{outline:0; border-radius:4px; min-height:20px; min-width:24px; display:inline-block}
+  .edit:hover{background:rgba(127,140,160,.08)}
+  .edit:focus{background:rgba(127,140,160,.12); box-shadow:inset 0 0 0 1px var(--accent)}
+  .edit:empty:before, .ce:empty:before{content:attr(data-ph); color:var(--mut); opacity:.75}
+  .tablewrap{overflow-x:auto}
+
+  /* structural edit spans — only interactive in Edit mode */
+  .ce{border-radius:3px}
+  body.editing .ce{outline:1px dashed var(--mut); padding:0 3px; cursor:text; min-width:16px; display:inline-block}
+  body.editing .ce:focus{outline:2px solid var(--accent); background:var(--card); color:var(--ink)}
+  /* header fields inherit white --head-ink for the brand bar; the focus card bg is light, so pin dark ink or the text vanishes */
+
+  /* decision chip */
+  .chip{display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; cursor:pointer; user-select:none; border:1px solid var(--line); background:var(--chip); white-space:nowrap}
+  .chip.ok{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+  .chip.warn{background:var(--warn); color:var(--on-accent); border-color:var(--warn)}
+  .chip.open{color:var(--mut)}
+  .chip.open:before{content:"＋ set"}
+
+  /* row tools + add/remove buttons */
+  .rowtools{display:flex; gap:6px; margin-top:6px}
+  .mini{font-size:11px; color:var(--mut); background:none; border:1px solid var(--line); border-radius:5px; padding:2px 7px; cursor:pointer}
+  .mini:hover{border-color:var(--accent); color:var(--accent)}
+  .mini.on{color:var(--accent); border-color:var(--accent)}
+  .mini.del:hover{border-color:var(--warn); color:var(--warn)}
+  .ec{padding:8px 18px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
+  .ec .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-weight:600}
+  .add{font-size:12px; color:var(--accent); background:none; border:1px dashed var(--accent); border-radius:6px; padding:3px 10px; cursor:pointer}
+  .add:hover{background:var(--accent-soft)}
+  .x{border:none; background:none; color:var(--mut); cursor:pointer; font-size:14px; line-height:1; padding:0 2px}
+  .x:hover{color:var(--warn)}
+  tr.detail td{background:var(--bg); padding-top:0}
+  tr.detail .dbox{color:var(--mut); font-size:12.5px; padding:8px 12px; background:var(--card); border:1px solid var(--line); border-radius:6px}
+
+  /* section exit criteria */
+  .close{display:flex; flex-wrap:wrap; gap:8px; padding:12px 18px; border-top:1px solid var(--line); align-items:center}
+  .close .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-weight:600}
+  .close .ck{font-size:12.5px; padding:4px 10px; border-radius:20px; background:var(--chip); cursor:pointer; user-select:none; border:1px solid var(--line); display:inline-flex; align-items:center; gap:4px}
+  .close .ck.done{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
+  .close .ck.tog:before{content:"○ "}
+  .close .ck.tog.done:before{content:"✓ "}
+
+  /* sequence diagram + step table */
+  .fig{padding:16px 18px 6px; overflow-x:auto}
+  .fig svg{color:var(--ink)}
+  .seqwrap{padding:4px 18px 6px; overflow-x:auto}
+  table.seq{font-size:13px}
+  table.seq th{background:transparent}
+  table.seq select{font:inherit; padding:3px 6px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--ink); max-width:100%}
+  .actorbar .actor{display:inline-flex; align-items:center; gap:2px; background:var(--chip); border:1px solid var(--line); border-radius:16px; padding:2px 6px 2px 10px}
+
+  /* parked list */
+  .parked-card .body{padding:6px 18px 14px}
+  .pk{display:flex; gap:10px; align-items:baseline; padding:8px 0; border-bottom:1px dashed var(--line); font-size:13.5px}
+  .pk:last-child{border-bottom:none}
+  .pk .src{color:var(--mut); font-size:12px; margin-left:auto; white-space:nowrap}
+  .pk .rm{color:var(--mut); cursor:pointer; border:none; background:none; font-size:14px}
+  .pk-empty{color:var(--mut); font-size:13px; font-style:italic; padding:6px 0}
+
+  .foot{text-align:center; color:var(--mut); font-size:12px; margin:40px 0 0}
+  /* permanent tool credit — lives outside the editable model, so Edit/Reset/Import never touch it
+     and it bakes into every Save HTML / PDF export. Not contenteditable: can't be edited or removed in-app. */
+  .credit{text-align:center; color:var(--mut); font-size:12px; line-height:1.6;
+    padding:20px 20px 28px; border-top:1px solid var(--line); margin-top:40px}
+  .credit b{color:var(--ink); font-weight:700; letter-spacing:-.01em}
+  .credit a{color:inherit; text-decoration:underline}
+  input[type=file]{display:none}
+  .swatch{width:30px; height:26px; padding:0; border:1px solid rgba(255,255,255,.3); border-radius:6px;
+    background:none; cursor:pointer; vertical-align:middle}
+  .swatch::-webkit-color-swatch-wrapper{padding:2px}
+  .swatch::-webkit-color-swatch{border:none; border-radius:4px}
+  .brandlogo{max-height:36px; max-width:150px; width:auto; object-fit:contain; border-radius:4px; background:rgba(255,255,255,.9); padding:2px}
+  .logoctl{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
+
+  /* screenshot gallery (kind:"screens") */
+  .shots{display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:14px; padding:14px 18px}
+  .shot{position:relative; margin:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; background:var(--card)}
+  .shot img{display:block; width:100%; height:auto}
+  .shot figcaption{padding:8px 10px; font-size:12.5px; color:var(--mut)}
+  .shot-del{position:absolute; top:6px; right:6px; width:22px; height:22px; line-height:1; background:var(--card); border:1px solid var(--line); border-radius:5px; opacity:.55}
+  .shot-del:hover{opacity:1}
+
+  /* decision pick-list editor (edit mode) */
+  .pill-ed .pill-rows{display:flex; flex-direction:column; gap:6px; margin:8px 0}
+  .pill-row{display:flex; gap:6px; align-items:center; flex-wrap:wrap}
+  .pill-row .ce{min-width:120px}
+  .pill-row select{font:inherit; font-size:12px; padding:2px 6px; border:1px solid var(--line); border-radius:6px; background:var(--card); color:var(--ink)}
+
+  /* touch: enlarge the small chips/buttons toward a comfortable tap target on coarse pointers */
+  @media (pointer:coarse){
+    .chip{padding:7px 12px}
+    .mini{padding:6px 10px}
+    .close .ck{padding:7px 12px}
+    .x, .pk .rm, .leakbar .close-x{padding:4px 8px}
+  }
+  @media (max-width:640px){
+    header{padding:10px 14px}
+    header .sep{display:none}
+    main{padding:0 14px}
+  }
+
+  /* print / PDF (Ctrl+P). Force the light base palette regardless of the on-screen theme; a
+     picked brand colour survives because it's an inline style on <html>, which outranks this.
+     Hide the chrome, drop shadows, and avoid breaking a card or row across a page. Details and
+     collapsed sections are expanded in JS via a beforeprint hook. Selectors include the
+     [data-theme] variants so they outrank the dark-theme rule on specificity + order. */
+  @media print{
+    :root, :root[data-theme="dark"], :root[data-theme="light"]{
+      color-scheme:light;
+      --ink:#1f2733; --mut:#5b6572; --line:#e2e6ea; --bg:#fff; --card:#fff;
+      --accent:#2f6f4f; --accent-soft:#eaf5ef; --warn:#c8791d; --warn-soft:#fbf1e3;
+      --open:#fff; --chip:#eef1f4; --head:#2f6f4f; --on-accent:#fff; --head-ink:#fff; --shadow:none;
+    }
+    header{position:static; box-shadow:none}
+    header .hbtn, header .meter, header .badge, header .sep, .swatch,
+    .rowtools, .mini, .add, .x, .leakbar, .editbar, .chev{display:none !important}
+    .card{break-inside:avoid; box-shadow:none}
+    tr, .shot{break-inside:avoid}
+    body{background:#fff}
+    main{margin:12px auto; max-width:none}
+  }
+</style>
+
+<header>
+  <span class="wordmark" title="Decidedly — the tool">Decidedly</span>
+  <img id="logo-left" class="brandlogo" alt="" hidden>
+  <div>
+    <div class="ttl" id="h-ttl"></div>
+    <div class="sub" id="h-sub"></div>
+    <div class="sub meta-line" id="h-meta"></div>
+  </div>
+  <img id="logo-right" class="brandlogo" alt="" hidden>
+  <span class="grow"></span>
+  <span class="badge" id="badge" aria-live="polite">● unexported changes</span>
+  <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="meter" aria-label="Rows resolved">
+    <span id="mtxt"></span><span class="bar"><span class="fill" id="fill"></span></span></div>
+  <!-- view controls -->
+  <button type="button" class="hbtn" data-act="theme" id="themebtn" title="Switch light / dark">☾ Dark</button>
+  <input type="color" id="accentpick" class="swatch" title="Brand colour" aria-label="Brand colour">
+  <button type="button" class="hbtn" data-act="edit" id="editbtn">Edit</button>
+  <button type="button" class="hbtn" data-act="leak">Leak check</button>
+  <button type="button" class="hbtn" data-act="filter" id="filterbtn">Filter: All</button>
+  <button type="button" class="hbtn" data-act="fold">Collapse all</button>
+  <span class="sep" aria-hidden="true"></span>
+  <!-- export controls -->
+  <button type="button" class="hbtn" data-act="json">Export JSON</button>
+  <button type="button" class="hbtn" data-act="xlsx">Export Excel</button>
+  <button type="button" class="hbtn" data-act="html">Save HTML</button>
+  <button type="button" class="hbtn" data-act="pdf" title="Print → Save as PDF">Export PDF</button>
+  <button type="button" class="hbtn" data-act="copy">Copy summary</button>
+  <span class="sep" aria-hidden="true"></span>
+  <!-- data controls -->
+  <button type="button" class="hbtn" data-act="import">Import</button>
+  <button type="button" class="hbtn danger" data-act="reset">Reset</button>
+</header>
+
+<main id="app"></main>
+<footer class="credit" role="contentinfo">
+  <b>Decidedly</b> · Created by Ramprasad Bommaganty · <a href="https://keepingupwiththecloud.com" target="_blank" rel="noopener">keepingupwiththecloud.com</a> · MIT-licensed — free to use, modify &amp; share.
+</footer>
+<input type="file" id="file" accept=".json,application/json">
+<input type="file" id="logofile-left" accept="image/*">
+<input type="file" id="logofile-right" accept="image/*">
+<input type="file" id="shotfile" accept="image/*">
+
+<script>
+/* ======================================================================
+   THE ENGINE — generic. You shouldn't need to edit anything below here.
+   It reads the MODEL above, renders it, keeps state, and exports.
+   ====================================================================== */
+
+const $  = s => document.querySelector(s);
+const esc = s => String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+// FILE = the pristine model shipped in the page. M = the working copy (FILE + your edits).
+const FILE = JSON.parse($('#model').textContent);
+const KEY  = 'decidedly:' + (FILE.meta.title || 'default');
+const SRC  = JSON.stringify(FILE);   // fingerprint of the embedded model
+const copy = o => JSON.parse(JSON.stringify(o));
+const DEFAULT_UI = () => ({ shut:{}, detail:{}, close:{}, edit:false });
+
+// Restore saved state ONLY if it was saved against this exact embedded model. Otherwise the
+// embedded model wins — so editing the MODEL block (or opening a fresh snapshot) always shows
+// the new content instead of stale localStorage from a previous version of the file.
+let stamp; try{ stamp = localStorage.getItem(KEY + ':src'); }catch(e){ stamp = null; }
+const fresh = stamp === SRC;   // compare raw strings, not parsed objects
+let M  = (fresh && restore(KEY)) || copy(FILE);
+let UI = Object.assign(DEFAULT_UI(), fresh && restore(KEY + ':ui'));
+let dirty = false;
+let leakHits = null;      // last Leak-check results (transient view state, not persisted)
+let pendingExport = null; // which client-facing export is waiting behind the leak banner ('xlsx'|'html'|'copy')
+
+/* ---- theme: light/dark toggle. Seeds from the OS once, then remembers your pick.
+   A saved snapshot carries data-theme baked on <html>, so it opens in the frozen theme
+   regardless of the viewer's OS — that baked attribute wins over everything here. ---- */
+const THEME_KEY = KEY + ':theme';
+let theme = document.documentElement.getAttribute('data-theme')           // frozen by an export
+         || (()=>{ try{ return localStorage.getItem(THEME_KEY); }catch(e){ return null; } })()
+         || ((window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches) ? 'dark' : 'light');
+function setTheme(t){
+  theme = t; document.documentElement.setAttribute('data-theme', t);
+  const b = $('#themebtn'); if(b) b.textContent = t === 'dark' ? '☀ Light' : '☾ Dark';
+}
+setTheme(theme);
+
+/* ---- brand colour: one picked hex drives the whole palette. The soft tint is derived per
+   theme via color-mix (so it stays subtle in light AND dark); the on-accent text colour is
+   chosen by luminance so it's readable on any hue. Stored in meta.accent → exports + reimports. */
+const DEFAULT_ACCENT = '#2f6f4f';
+function relLum(hex){
+  const h = hex.replace('#',''); const n = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
+  const c = [0,2,4].map(i => { let v = parseInt(n.slice(i,i+2),16)/255; return v<=.03928 ? v/12.92 : ((v+.055)/1.055)**2.4; });
+  return .2126*c[0] + .7152*c[1] + .0722*c[2];
+}
+function applyAccent(){
+  const rs = document.documentElement.style;
+  const hex = M.meta && M.meta.accent;
+  if(!hex){ ['--accent','--accent-soft','--on-accent','--head','--head-ink'].forEach(p=>rs.removeProperty(p)); return; }
+  const on = relLum(hex) > .5 ? '#1f2733' : '#ffffff';
+  rs.setProperty('--accent', hex);
+  rs.setProperty('--accent-soft', `color-mix(in srgb, ${hex} 14%, var(--card))`);
+  rs.setProperty('--on-accent', on);
+  rs.setProperty('--head', hex);
+  rs.setProperty('--head-ink', on);
+}
+applyAccent();
+// native colour input fires on 'input' (live drag) and 'change' — wire both to write meta.accent
+(() => { const el = $('#accentpick'); if(!el) return;
+  el.value = (M.meta && M.meta.accent) || DEFAULT_ACCENT;
+  el.oninput = el.onchange = () => { M.meta.accent = el.value; save(false); applyAccent(); };
+})();
+
+/* ---- shared image inliner (logos + screenshots). Read a file, downscale on a <canvas> so a
+   big image doesn't bloat the single file, return a base64 data URI stored in the model. PNG
+   keeps transparency (logos); anything else re-encodes as JPEG. No library, no network. ---- */
+function fileToDataURI(file, maxW, maxH, cb){
+  const rd = new FileReader();
+  rd.onload = () => { const img = new Image();
+    img.onload = () => {
+      const scale = Math.min(1, maxW/img.width, maxH/img.height);
+      const w = Math.max(1, Math.round(img.width*scale)), h = Math.max(1, Math.round(img.height*scale));
+      const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+      cv.getContext('2d').drawImage(img, 0, 0, w, h);
+      cb(cv.toDataURL(file.type === 'image/png' ? 'image/png' : 'image/jpeg', 0.85));
+    };
+    img.onerror = () => alert('Could not read that image.');
+    img.src = rd.result;
+  };
+  rd.readAsDataURL(file);
+}
+const logoKey = side => 'logo' + (side === 'left' ? 'Left' : 'Right');
+// logo file inputs are static in the page — wire once. Logos downscale to ~72px tall (retina of a 36px slot).
+['left','right'].forEach(side => { const inp = $('#logofile-' + side); if(!inp) return;
+  inp.onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return;
+    fileToDataURI(f, 300, 72, uri => { M.meta[logoKey(side)] = uri; save(false); render(); }); };
+});
+
+// screenshots: one shared hidden input; shotTarget names the section it lands in. Downscale to ~1200px wide.
+let shotTarget = null;
+function addShot(si, file){ fileToDataURI(file, 1200, 900, uri => {
+  const s = M.sections[si]; if(!s) return; (s.shots = s.shots || []).push({ img: uri, caption: '' }); save(false); render(); }); }
+(() => { const inp = $('#shotfile'); if(!inp) return;
+  inp.onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(f && shotTarget != null) addShot(shotTarget, f); };
+})();
+// paste an image → drop it into the first screens section (ponytail: multi-gallery targeting isn't worth the state)
+document.addEventListener('paste', e => {
+  const items = e.clipboardData && e.clipboardData.items; if(!items) return;
+  const file = [...items].map(it => it.kind === 'file' ? it.getAsFile() : null).find(f => f && /^image\//.test(f.type));
+  if(!file) return;                                            // no image → let normal text paste happen
+  const si = M.sections.findIndex(s => s.kind === 'screens');
+  if(si < 0) return;                                           // no gallery to receive it
+  e.preventDefault(); addShot(si, file);
+});
+
+// while printing, force every section + detail open so the PDF isn't missing collapsed content
+let printAll = false;
+addEventListener('beforeprint', () => { printAll = true; render(); });
+addEventListener('afterprint',  () => { printAll = false; render(); });
+
+// grid row filter (view-only — exports and print always use the full model)
+let filter = 'all';   // all | unresolved | parked
+function rowVisible(s, r){
+  if(printAll || filter === 'all') return true;
+  if(filter === 'parked') return !!r.parked;
+  if(filter === 'unresolved') return !(s.fill && String(r[s.fill]||'').trim());
+  return true;
+}
+
+function restore(k){ try{ const s = localStorage.getItem(k); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
+function save(rerender){
+  localStorage.setItem(KEY, JSON.stringify(M));
+  localStorage.setItem(KEY + ':ui', JSON.stringify(UI));
+  localStorage.setItem(KEY + ':src', SRC);   // stamp state as belonging to this model version
+  dirty = true; $('#badge').classList.add('on');
+  if(rerender !== false){ meter(); }
+}
+window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue = ''; } });
+
+// dotted-path read/write into the model, e.g. "sections.0.rows.2.owner"
+const getP = p => p.split('.').reduce((o,k)=> o==null?undefined:o[k], M);
+function setP(p, v){ const ks=p.split('.'); const last=ks.pop(); const o=ks.reduce((o,k)=>o[k], M); if(o) o[last]=v; }
+
+/* ---- progress meter: fraction of grid rows whose "fill" column is answered ---- */
+function meter(){
+  let total = 0, done = 0;
+  M.sections.forEach(s => {
+    if(!s.rows || !s.fill) return;
+    s.rows.forEach(r => { total++; if(String(r[s.fill]||'').trim()) done++; });
+  });
+  const pct = total ? Math.round(done/total*100) : 0;
+  $('#fill').style.width = pct + '%';
+  $('#mtxt').textContent = done + '/' + total + ' resolved';
+  const m = $('#meter'); if(m){ m.setAttribute('aria-valuenow', pct); m.setAttribute('aria-valuetext', done+' of '+total+' rows resolved'); }
+}
+
+/* ---- editable-text helpers ---- */
+// cew: a data cell — always editable (you fill it in during the session).
+function cew(path, val, ph){
+  return `<span class="edit" contenteditable="true" data-p="${path}" data-ph="${esc(ph||'')}">${esc(val==null?'':val)}</span>`;
+}
+// ce: structural text (titles, headers, labels) — editable ONLY in Edit mode, plain text otherwise.
+function ce(path, val, ph){
+  const v = esc(val==null?'':val);
+  return UI.edit ? `<span class="ce" contenteditable="true" data-p="${path}" data-ph="${esc(ph||'')}">${v}</span>` : v;
+}
+const delBtn = (attr, val, title) => `<button class="x" data-${attr}="${val}" title="${esc(title||'remove')}">×</button>`;
+
+/* ---- render: grid section ---- */
+function tone(section, r){ return (M.vocab.tone || {})[r[section.fill]] || 'open'; }
+
+function cell(s, si, r, ri, col){
+  const path = `sections.${si}.rows.${ri}.${col.f}`, v = r[col.f];
+  if(col.f === 'n') return `<td class="n">${esc(v)}</td>`;
+  if(col.pick){                                   // decision chip
+    const t = (M.vocab.tone || {})[v] || 'open';
+    return `<td><span class="chip ${t}" role="button" tabindex="0" aria-pressed="${t!=='open'}" aria-label="Decision: ${esc(v||'not set')}" data-pick="${si}.${ri}.${col.f}.${col.pick}" title="${esc(M.vocab.help||'')}">${esc(v)}</span></td>`;
+  }
+  if(col.detail) return '';                        // detail lives behind the row toggle
+  if(col.edit) return `<td class="${col.f==='topic'?'topic':''}">${cew(path, v)}</td>`;
+  // everything else (e.g. topic) — editable only in Edit mode
+  return `<td class="${col.f==='topic'?'topic':''}">${ce(path, v)}</td>`;
+}
+
+function rowTools(s, si, r, ri){
+  const bits = [];
+  if(s.cols.some(c => c.detail))
+    bits.push(`<button class="mini ${UI.detail[si+'.'+ri]?'on':''}" data-detail="${si}.${ri}">${UI.detail[si+'.'+ri]?'▾ detail':'▸ detail'}</button>`);
+  bits.push(r.parked
+    ? `<button class="mini on" data-park="${si}.${ri}" title="already parked — click to unpark">✓ parked</button>`
+    : `<button class="mini" data-park="${si}.${ri}" title="move to the parking lot">park</button>`);
+  if(UI.edit) bits.push(`<button class="mini del" data-delrow="${si}.${ri}" title="delete this row">× row</button>`);
+  return `<div class="rowtools">${bits.join('')}</div>`;
+}
+
+function grid(s, si){
+  const cols = s.cols.filter(c => !c.detail);
+  const detailCol = s.cols.find(c => c.detail);
+  const head = cols.map(c => {
+    const ci = s.cols.indexOf(c);
+    return `<th style="${c.w?`width:${c.w}px`:''}">${ce(`sections.${si}.cols.${ci}.h`, c.h)}</th>`;
+  }).join('');
+  const body = s.rows.map((r, ri) => {
+    if(!rowVisible(s, r)) return '';                // filter is view-only; ri stays the true index
+    const cells = cols.map((c, i) => {
+      let td = cell(s, si, r, ri, c);
+      if(i === cols.length - 1) td = td.replace('</td>', rowTools(s, si, r, ri) + '</td>');
+      return td;
+    }).join('');
+    let html = `<tr class="${tone(s, r)}${r.parked?' parked':''}">${cells}</tr>`;
+    if(detailCol && (printAll || UI.detail[si+'.'+ri]))
+      html += `<tr class="detail"><td colspan="${cols.length}"><div class="dbox">${cew(`sections.${si}.rows.${ri}.${detailCol.f}`, r[detailCol.f], 'the reasoning behind this row')}</div></td></tr>`;
+    return html;
+  }).join('');
+  const addRow = UI.edit ? `<div class="ec"><button class="add" data-addrow="${si}">+ row</button></div>` : '';
+  return `<div class="tablewrap"><table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table></div>${addRow}`;
+}
+
+/* ---- render: sequence section (live diagram from a table of steps) ---- */
+function seqSvg(s){
+  const A = (s.actors && s.actors.length) ? s.actors : ['Actor'];
+  const steps = s.steps || [], N = A.length;
+  const colW = 175, padX = 78, W = padX*2 + (N-1)*colW || 260;
+  const x = i => padX + i*colW;
+  const TOP = 46, RH = 44, H = TOP + steps.length*RH + 22;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px" font-family="var(--sans)">
+    <defs><marker id="sa" markerWidth="9" markerHeight="9" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L7,3 L0,6 Z" fill="currentColor"/></marker></defs>`;
+  A.forEach((a,i) => {
+    svg += `<rect x="${x(i)-72}" y="8" width="144" height="26" rx="6" style="fill:var(--accent-soft);stroke:var(--line)"/>
+      <text x="${x(i)}" y="25" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">${esc(a)}</text>
+      <line x1="${x(i)}" y1="36" x2="${x(i)}" y2="${H-12}" stroke="currentColor" stroke-opacity=".22" stroke-dasharray="3 3"/>`;
+  });
+  steps.forEach((st,r) => {
+    const f = Math.max(0, Math.min(N-1, +st.from||0)), t = Math.max(0, Math.min(N-1, +st.to||0));
+    const y = TOP + r*RH + 18, dash = st.dashed ? ` stroke-dasharray="5 4"` : '';
+    if(f === t){
+      svg += `<path d="M${x(f)},${y} h40 v16 h-40" fill="none" stroke="currentColor" stroke-width="1.4"${dash} marker-end="url(#sa)"/>
+        <text x="${x(f)+46}" y="${y-3}" font-size="11.5" fill="currentColor">${esc(st.msg)}</text>`;
+    } else {
+      const x1 = x(f), x2 = x(t), end = x2 + (x2>x1 ? -5 : 5);
+      svg += `<line x1="${x1}" y1="${y}" x2="${end}" y2="${y}" stroke="currentColor" stroke-width="1.4"${dash} marker-end="url(#sa)"/>
+        <text x="${(x1+x2)/2}" y="${y-6}" text-anchor="middle" font-size="11.5" fill="currentColor">${esc(st.msg)}</text>`;
+    }
+  });
+  return svg + `</svg>`;
+}
+
+function sequence(s, si){
+  const A = s.actors || [];
+  const opts = sel => A.map((a,i) => `<option value="${i}"${i===(+sel||0)?' selected':''}>${esc(a)}</option>`).join('');
+  const rows = (s.steps||[]).map((st,ri) => `<tr>
+      <td><select data-seq="${si}.${ri}.from">${opts(st.from)}</select></td>
+      <td><select data-seq="${si}.${ri}.to">${opts(st.to)}</select></td>
+      <td>${cew(`sections.${si}.steps.${ri}.msg`, st.msg, 'message')}</td>
+      <td><button class="mini del" data-delstep="${si}.${ri}" title="delete step">×</button></td>
+    </tr>`).join('');
+  const actorbar = UI.edit ? `<div class="ec actorbar"><span class="lbl">Actors</span>${
+      A.map((a,ai) => `<span class="actor">${ce(`sections.${si}.actors.${ai}`, a, 'name')}${delBtn('delactor', si+'.'+ai, 'remove actor')}</span>`).join('')
+    }<button class="add" data-addactor="${si}">+ actor</button></div>` : '';
+  return `<div class="fig">${seqSvg(s)}</div>${actorbar}
+    <div class="seqwrap"><table class="seq"><thead><tr>
+      <th style="width:160px">From</th><th style="width:160px">To</th><th>Message</th><th style="width:34px"></th>
+    </tr></thead><tbody>${rows}</tbody></table>
+    <div class="ec"><button class="add" data-addstep="${si}">+ step</button></div></div>`;
+}
+
+/* ---- render: screens section (a captioned screenshot gallery) ---- */
+function screensSection(s, si){
+  const shots = (s.shots||[]).map((sh,i) => `<figure class="shot">
+      <img src="${esc(sh.img)}" alt="${esc(sh.caption||'screenshot')}" loading="lazy">
+      <figcaption>${cew(`sections.${si}.shots.${i}.caption`, sh.caption, 'caption this screen')}</figcaption>
+      <button class="x shot-del" data-delshot="${si}.${i}" title="remove screenshot">×</button>
+    </figure>`).join('');
+  const empty = (s.shots && s.shots.length) ? '' : `<div class="intro">No screenshots yet — add one, or paste an image (Ctrl / ⌘ + V).</div>`;
+  return `<div class="shots">${shots}${empty}</div>
+    <div class="ec"><button class="add" data-addshot="${si}">＋ screenshot</button>
+      <span class="lbl">or paste an image (Ctrl / ⌘ + V)</span></div>`;
+}
+
+/* ---- render: static figure (arbitrary SVG by name; kept for backward compatibility) ---- */
+function figure(name){
+  // Add your own named figures here, or use a "sequence" section instead (editable).
+  return `<div class="intro">No figure named “${esc(name)}”. Use a "sequence" section for an editable diagram.</div>`;
+}
+
+function spotlight(sp){
+  if(!sp) return '';
+  const opts = sp.options.map((o,oi) => `<div class="opt ${sp.picked===o.id?'pick':''}"${UI.edit?'':' role="button" tabindex="0"'} aria-pressed="${sp.picked===o.id}" data-spot="${esc(o.id)}">
+      <span class="tick">✓</span>
+      <div class="oname">${ce(`spotlight.options.${oi}.name`, o.name, 'name this option')}</div>
+      <div class="row"><span class="k">buys</span><span>${ce(`spotlight.options.${oi}.buys`, o.buys, 'what it buys you')}</span></div>
+      <div class="row"><span class="k">costs</span><span>${ce(`spotlight.options.${oi}.costs`, o.costs, 'what it costs')}</span></div>
+      ${UI.edit?`<div class="ec" style="padding:8px 0 0">${delBtn('delopt', oi, 'remove option')}</div>`:''}
+    </div>`).join('');
+  const addOpt = UI.edit ? `<div class="ec"><button class="add" data-addopt="1">+ option</button></div>` : '';
+  return `<section class="card spot ${(!printAll && UI.shut.spot)?'shut':''}" data-card="spot">
+    <div class="head" data-fold="spot"><button type="button" class="chev" data-foldbtn="spot" aria-expanded="${!UI.shut.spot}" aria-label="Toggle Decision to make">${UI.shut.spot?'▸':'▾'}</button>
+      <span class="h-ttl">Decision to make</span><span class="tag">spotlight</span></div>
+    <div class="body">
+      <div class="q">${ce('spotlight.q', sp.q, 'the one question this session hangs on')}</div>
+      <div class="opts">${opts}</div>${addOpt}
+      ${(sp.note||UI.edit) ? `<div class="note">${cew('spotlight.note', sp.note, 'where did the room land?')}</div>` : ''}
+    </div></section>`;
+}
+
+function sectionCard(s, si){
+  const inner = s.kind === 'sequence' ? sequence(s, si)
+              : s.kind === 'screens'  ? screensSection(s, si)
+              : s.kind === 'figure'   ? `<div class="fig">${figure(s.svg)}</div>`
+              : grid(s, si);
+  let close = '';
+  if(s.close || UI.edit){
+    const chips = (s.close||[]).map((c,ci) => UI.edit
+      ? `<span class="ck">${ce(`sections.${si}.close.${ci}`, c, 'exit criterion')}${delBtn('delclose', si+'.'+ci)}</span>`
+      : `<span class="ck tog ${(UI.close&&UI.close[si+'.'+ci])?'done':''}" role="button" tabindex="0" aria-pressed="${!!(UI.close&&UI.close[si+'.'+ci])}" data-close="${si}.${ci}">${esc(c)}</span>`).join('');
+    const addClose = UI.edit ? `<button class="add" data-addclose="${si}">+ criterion</button>` : '';
+    close = `<div class="close"><span class="lbl">Leaving with</span>${chips}${addClose}</div>`;
+  }
+  const delSec = UI.edit ? delBtn('delsec', si, 'delete this section') : '';
+  return `<section class="card ${(!printAll && UI.shut[s.id])?'shut':''}" data-card="${s.id}">
+    <div class="head" data-fold="${s.id}"><button type="button" class="chev" data-foldbtn="${s.id}" aria-expanded="${!UI.shut[s.id]}" aria-label="Toggle section">${UI.shut[s.id]?'▸':'▾'}</button>
+      <span class="h-ttl">${ce(`sections.${si}.title`, s.title, 'section title')}</span>
+      <span class="tag">${ce(`sections.${si}.tag`, s.tag||'', 'tag')}</span>
+      <span class="grow" style="flex:1"></span>${delSec}</div>
+    <div class="body">
+      ${(s.intro||UI.edit) ? `<div class="intro">${ce(`sections.${si}.intro`, s.intro||'', 'a line on what this section is for')}</div>` : ''}
+      ${inner}${close}
+    </div></section>`;
+}
+
+function parkedCard(){
+  const list = M.parked && M.parked.length
+    ? M.parked.map((p,i) => `<div class="pk"><span>${esc(p.item)}</span>
+        <span class="src">${esc(p.section||'')}</span>
+        <button class="rm" data-unpark="${i}" title="remove">×</button></div>`).join('')
+    : `<div class="pk-empty">Nothing parked yet. Hit “park” on any row to send a follow-up here.</div>`;
+  return `<section class="card parked-card ${(!printAll && UI.shut.parked)?'shut':''}" data-card="parked">
+    <div class="head" data-fold="parked"><button type="button" class="chev" data-foldbtn="parked" aria-expanded="${!UI.shut.parked}" aria-label="Toggle Parking lot">${UI.shut.parked?'▸':'▾'}</button>
+      <span class="h-ttl">Parking lot</span><span class="tag">follow-ups</span></div>
+    <div class="body">${list}</div></section>`;
+}
+
+/* ---- leak check: scan every string in the model against the denylist ----
+   This is the shareable version of a build-time gate: it can't know what's confidential
+   for YOU, so you fill M.leaks with your own internal vocabulary. It only flags — you decide. */
+function leakScan(){
+  const rules = (M.leaks || []).filter(Boolean).map(r => {
+    const m = /^\/(.*)\/([a-z]*)$/.exec(r);            // "/regex/flags" → RegExp, else literal substring
+    try { return m ? new RegExp(m[1], m[2].includes('i')?m[2]:m[2]+'i')
+                   : new RegExp(r.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'), 'i'); }
+    catch(e){ return null; }
+  }).filter(Boolean);
+  if(!rules.length) return [];
+  const hits = [], seenKeys = new Set();
+  (function walk(o, path){
+    if(typeof o === 'string'){
+      if(o.startsWith('data:')) return;   // inlined image/logo blob — leak check reads text, not pixels (the image gate covers these)
+      rules.forEach(re => { const m = re.exec(o); if(m){
+        const key = path+'|'+m.index; if(seenKeys.has(key)) return; seenKeys.add(key);
+        hits.push({ path, term: m[0], snippet: o.slice(Math.max(0,m.index-18), m.index+m[0].length+18) });
+      }});
+    } else if(Array.isArray(o)) o.forEach((v,i)=>walk(v, path+'.'+i));
+    else if(o && typeof o === 'object') Object.keys(o).forEach(k => { if(k==='leaks'||k==='//leaks') return; walk(o[k], path?path+'.'+k:k); });
+  })(M, '');
+  return hits;
+}
+// turn a model path into something a human can find on the board
+function locate(path){
+  const p = path.split('.');
+  if(p[0]==='sections'){ const s = M.sections[+p[1]]; let loc = s ? (s.title||s.id) : 'section';
+    if(p[2]==='rows')  loc += ' › row ' + (+p[3]+1);
+    else if(p[2]==='steps') loc += ' › step ' + (+p[3]+1);
+    else if(p[2]==='close') loc += ' › exit criteria';
+    else if(p[2]==='cols')  loc += ' › column header';
+    else if(p[2]) loc += ' › ' + p[2];
+    return loc; }
+  if(p[0]==='spotlight') return 'Decision spotlight';
+  if(p[0]==='meta') return 'Header';
+  return path;
+}
+function leakBanner(){
+  if(!leakHits) return '';
+  const x = `<button class="close-x" data-leakclear="1" title="dismiss">×</button>`;
+  if(!leakHits.length)
+    return `<div class="leakbar ok" role="status">${x}✓ <b>No leaks found.</b> Nothing on the board matches your denylist — safe to share.</div>`;
+  const items = leakHits.slice(0,20).map(h =>
+    `<li><code>${esc(h.term)}</code> <span class="loc">in ${esc(locate(h.path))}</span> — “…${esc(h.snippet)}…”</li>`).join('');
+  const more = leakHits.length>20 ? `<li>…and ${leakHits.length-20} more</li>` : '';
+  // when an export is blocked, offer a deliberate, labelled override instead of a silent second click
+  const proceedLbl = pendingExport === 'copy' ? 'Copy summary anyway'
+    : `${ {xlsx:'Export Excel', html:'Save HTML', pdf:'Export PDF'}[pendingExport] || 'Export' } anyway`;
+  const proceed = pendingExport ? `<div class="ec" style="padding:8px 0 0"><button class="mini del" data-leakproceed="1">${proceedLbl}</button></div>` : '';
+  return `<div class="leakbar warn" role="status">${x}⚠ <b>${leakHits.length} possible leak${leakHits.length>1?'s':''}</b> — text a client shouldn't see. Fix it, or edit the denylist (<code>leaks</code>) if it's a false alarm, then re-check.<ul>${items}${more}</ul>${proceed}</div>`;
+}
+
+// rename a decision value everywhere it's referenced: the pick-list, the tone map, and any row holding it
+function renameVocab(oldV, newV){
+  const d = M.vocab.decision, idx = d.indexOf(oldV);
+  if(!newV || oldV === newV || idx < 0 || d.includes(newV)) return;   // ignore blank / no-op / collision
+  d[idx] = newV;
+  const t = (M.vocab.tone = M.vocab.tone || {}); if(oldV in t){ t[newV] = t[oldV]; delete t[oldV]; }
+  M.sections.forEach(s => (s.rows||[]).forEach(r => { if(s.fill && r[s.fill] === oldV) r[s.fill] = newV; }));
+}
+// edit-mode decision pick-list editor: rename / recolour / reorder / add / delete the chip values.
+// The leading "" (the unset state) is pinned at index 0 and hidden from the list.
+function pillEditor(){
+  if(!UI.edit) return '';
+  const toneName = { open:'neutral', warn:'amber', ok:'green' };
+  const toneSel = cur => ['open','warn','ok'].map(t => `<option value="${t}"${t===cur?' selected':''}>${toneName[t]}</option>`).join('');
+  const rows = (M.vocab.decision||[]).map((v,i) => ({v,i})).filter(x => x.v !== '').map(({v,i}) => `<div class="pill-row">
+      <span class="ce" contenteditable="true" data-vocab="${i}" data-ph="value">${esc(v)}</span>
+      <select data-vtone="${esc(v)}" title="colour / meter tone">${toneSel((M.vocab.tone||{})[v]||'open')}</select>
+      <button class="mini" data-vmove="${i}.-1" title="move up">↑</button>
+      <button class="mini" data-vmove="${i}.1" title="move down">↓</button>
+      <button class="x" data-vdel="${i}" title="remove value">×</button>
+    </div>`).join('');
+  return `<div class="editbar pill-ed"><span class="lbl">Decision pick-list</span>
+    <div class="pill-rows">${rows}</div>
+    <button class="add" data-vadd="1">＋ value</button></div>`;
+}
+// edit-mode logo upload/clear controls (shown inside the edit bar)
+function logoControls(){
+  const one = side => { const has = M.meta && M.meta[logoKey(side)];
+    return `<button class="mini" data-logo="${side}">${has?'Replace':'Add'} ${side} logo</button>`
+         + (has ? `<button class="mini del" data-logoclr="${side}">clear</button>` : ''); };
+  return `<div class="logoctl"><span class="lbl">Logos</span>${one('left')}${one('right')}</div>`;
+}
+
+function render(){
+  document.body.classList.toggle('editing', !!UI.edit);
+  $('#editbtn').classList.toggle('on', !!UI.edit);
+  $('#h-ttl').innerHTML = ce('meta.title', M.meta.title, 'board title');
+  $('#h-sub').innerHTML = ce('meta.subtitle', M.meta.subtitle||'', 'subtitle');
+  const hm = $('#h-meta');
+  if(UI.edit){
+    hm.innerHTML = `📅 ${ce('meta.date', M.meta.date||'', 'date')} · Facilitator ${ce('meta.facilitator', M.meta.facilitator||'', 'name')} · Present ${ce('meta.present', M.meta.present||'', 'who / count')}`;
+    hm.style.display = '';
+  } else {
+    const parts = [M.meta.date, M.meta.facilitator && ('Facilitator: '+M.meta.facilitator), M.meta.present && ('Present: '+M.meta.present)].filter(Boolean).map(esc);
+    hm.innerHTML = parts.join('  ·  '); hm.style.display = parts.length ? '' : 'none';
+  }
+  document.title = M.meta.title || 'Decidedly';
+  const addSec = UI.edit ? `<div class="ec"><button class="add" data-addsec="grid">+ section</button>
+      <button class="add" data-addsec="seq">+ sequence</button>
+      <button class="add" data-addsec="screens">+ screens</button></div>` : '';
+  $('#app').innerHTML =
+    leakBanner() + imgBanner() +
+    (UI.edit ? `<div class="editbar"><b>Edit mode.</b> Titles, headers, options and actors are now editable, and the dashed buttons add or remove rows, sections, options and steps. <b>Export JSON</b> when you're done to keep your template.${logoControls()}</div>` : '') +
+    pillEditor() +
+    spotlight(M.spotlight) +
+    M.sections.map((s,si) => sectionCard(s, si)).join('') +
+    addSec +
+    parkedCard() +
+    (M.meta.footer ? `<p class="foot">${ce('meta.footer', M.meta.footer, 'footer')}</p>` : '');
+  applyAccent();                                            // re-apply after Import/Reset swaps the model
+  const ap = $('#accentpick'); if(ap) ap.value = (M.meta && M.meta.accent) || DEFAULT_ACCENT;
+  ['left','right'].forEach(side => { const el = $('#logo-' + side); if(!el) return;
+    const d = M.meta && M.meta[logoKey(side)];
+    if(d){ el.src = d; el.hidden = false; } else { el.removeAttribute('src'); el.hidden = true; } });
+  meter();
+  bind();
+}
+
+/* ---- interaction ---- */
+function bind(){
+  // one blur writer for every editable span (data cells AND structural spans)
+  document.querySelectorAll('[data-p]').forEach(el => el.onblur = () => {
+    const p = el.dataset.p, v = el.innerText.trim();
+    if(getP(p) !== v){ setP(p, v); save(false);
+      if(/\.(actors|steps)\./.test(p)) render();   // an actor rename or step message must redraw the diagram
+    }
+  });
+  // clicking an editable span or a control inside a header must not toggle the fold
+  document.querySelectorAll('.head .ce, .head button').forEach(el => el.onmousedown = e => e.stopPropagation());
+
+  // decision chip — click cycles the pick-list
+  document.querySelectorAll('.chip[data-pick]').forEach(el => el.onclick = () => {
+    const [si, ri, field, listName] = el.dataset.pick.split('.');
+    const list = M.vocab[listName] || [''];
+    const cur = M.sections[+si].rows[+ri][field] || '';
+    M.sections[+si].rows[+ri][field] = list[(list.indexOf(cur) + 1) % list.length];
+    save(); render();
+  });
+
+  // spotlight option pick (disabled while editing text)
+  document.querySelectorAll('.opt[data-spot]').forEach(el => el.onclick = e => {
+    if(UI.edit || e.target.closest('.ce,button')) return;
+    M.spotlight.picked = (M.spotlight.picked === el.dataset.spot) ? '' : el.dataset.spot;
+    save(); render();
+  });
+
+  // sequence step from/to selects — redraw diagram
+  document.querySelectorAll('select[data-seq]').forEach(el => el.onchange = () => {
+    const [si, ri, field] = el.dataset.seq.split('.');
+    M.sections[+si].steps[+ri][field] = +el.value; save(); render();
+  });
+
+  // park / unpark
+  document.querySelectorAll('[data-park]').forEach(el => el.onclick = () => {
+    const [si, ri] = el.dataset.park.split('.').map(Number);
+    const row = M.sections[si].rows[ri]; M.parked = M.parked || [];
+    if(row.parked){ row.parked = false; M.parked = M.parked.filter(p => p._k !== el.dataset.park); }
+    else { row.parked = true; M.parked.push({ item: row.topic || row.heard || '(row)', section: M.sections[si].title, _k: el.dataset.park }); }
+    save(); render();
+  });
+  document.querySelectorAll('[data-unpark]').forEach(el => el.onclick = () => {
+    const p = M.parked.splice(+el.dataset.unpark, 1)[0];
+    if(p && p._k){ const [si,ri] = p._k.split('.').map(Number); const row = M.sections[si] && M.sections[si].rows[ri]; if(row) row.parked = false; }
+    save(); render();
+  });
+
+  // dismiss the leak banner
+  document.querySelectorAll('[data-leakclear]').forEach(el => el.onclick = () => { leakHits = null; pendingExport = null; render(); });
+
+  // logo controls (edit mode): open the file picker / clear a slot
+  document.querySelectorAll('[data-logo]').forEach(el => el.onclick = () => $('#logofile-' + el.dataset.logo).click());
+  document.querySelectorAll('[data-logoclr]').forEach(el => el.onclick = () => { delete M.meta[logoKey(el.dataset.logoclr)]; save(false); render(); });
+
+  // screenshot gallery: add (opens picker) / remove
+  document.querySelectorAll('[data-addshot]').forEach(el => el.onclick = () => { shotTarget = +el.dataset.addshot; $('#shotfile').click(); });
+  document.querySelectorAll('[data-delshot]').forEach(el => el.onclick = () => { const [si,i] = el.dataset.delshot.split('.').map(Number); M.sections[si].shots.splice(i,1); save(false); render(); });
+
+  // decision pick-list editor: rename (blur, cascades) + recolour (tone select)
+  document.querySelectorAll('[data-vocab]').forEach(el => el.onblur = () => {
+    const i = +el.dataset.vocab, oldV = M.vocab.decision[i], nv = el.innerText.trim();
+    if(nv && nv !== oldV){ renameVocab(oldV, nv); save(false); render(); }
+  });
+  document.querySelectorAll('[data-vtone]').forEach(el => el.onchange = () => {
+    (M.vocab.tone = M.vocab.tone || {})[el.dataset.vtone] = el.value; save(); render();
+  });
+
+  // detail toggle + exit-criteria toggle + fold
+  document.querySelectorAll('[data-detail]').forEach(el => el.onclick = () => { UI.detail[el.dataset.detail] = !UI.detail[el.dataset.detail]; save(false); render(); });
+  document.querySelectorAll('[data-close]').forEach(el => el.onclick = () => { UI.close[el.dataset.close] = !UI.close[el.dataset.close]; save(false); render(); });
+  document.querySelectorAll('[data-fold]').forEach(el => el.onclick = e => { if(e.target.closest('.ce,button,select')) return; UI.shut[el.dataset.fold] = !UI.shut[el.dataset.fold]; save(false); render(); });
+  // the chevron is a real <button> so keyboard users can fold; the .head click above ignores it (closest button), so no double toggle
+  document.querySelectorAll('[data-foldbtn]').forEach(el => el.onclick = e => { e.stopPropagation(); UI.shut[el.dataset.foldbtn] = !UI.shut[el.dataset.foldbtn]; save(false); render(); });
+  // leak-gate explicit override — clear the leak warning, then still run the image gate before exporting
+  document.querySelectorAll('[data-leakproceed]').forEach(el => el.onclick = () => {
+    const act = pendingExport; leakHits = null; pendingExport = null;
+    if((act === 'xlsx' || act === 'html') && guardImages(act)) return;
+    if(act === 'xlsx' || act === 'html') clearDirty();   // print/copy aren't file exports — match the direct paths, keep the badge
+    if(act === 'xlsx') exportXlsx(); else if(act === 'html') exportHtml(); else if(act === 'copy') doCopy(); else if(act === 'pdf') window.print();
+    flashSaved(); render();
+  });
+  // image-gate: dismiss, or acknowledge and export
+  document.querySelectorAll('[data-imgclear]').forEach(el => el.onclick = () => { imgGate = null; render(); });
+  document.querySelectorAll('[data-imgproceed]').forEach(el => el.onclick = () => {
+    const act = imgGate.act; imgGate = null; clearDirty();
+    if(act === 'xlsx') exportXlsx(); else exportHtml();
+    flashSaved(); render();
+  });
+
+  // structure add/remove (Edit mode, plus +step/-step which work live)
+  // fn returning false aborts the save/render (used by the confirm-guarded deletes)
+  const on = (attr, fn) => document.querySelectorAll('['+attr+']').forEach(el => el.onclick = () => { if(fn(el.getAttribute(attr)) === false) return; save(); render(); });
+  on('data-addrow',  si => { const s = M.sections[+si]; const r = {}; s.cols.forEach(c => r[c.f] = c.f==='n' ? s.rows.length+1 : ''); s.rows.push(r); });
+  on('data-delrow',  v  => { const [si,ri] = v.split('.').map(Number); M.sections[si].rows.splice(ri,1); fixParked(p => p._k===v ? null : shiftKey(p, si, ri)); });
+  on('data-delsec',  si => { if(!confirm('Delete this whole section and everything in it? This cannot be undone.')) return false;
+    si = +si; M.sections.splice(si,1); fixParked(p => { const [ps]=p._k.split('.').map(Number); return ps===si ? null : (ps>si ? {...p, _k:(ps-1)+'.'+p._k.split('.')[1]} : p); }); });
+  on('data-addsec',  k  => { M.sections.push(k==='seq' ? blankSeq() : k==='screens' ? blankScreens() : blankGrid()); });
+  on('data-addopt',  () => { const o = M.spotlight.options; const ids = o.map(x=>x.id); let id='a'; while(ids.includes(id)) id = String.fromCharCode(id.charCodeAt(0)+1); o.push({id, name:'', buys:'', costs:''}); });
+  on('data-delopt',  oi => { M.spotlight.options.splice(+oi,1); });
+  on('data-addclose',si => { const s = M.sections[+si]; (s.close = s.close||[]).push(''); });
+  on('data-delclose',v  => { const [si,ci] = v.split('.').map(Number); M.sections[si].close.splice(ci,1); });
+  on('data-addstep', si => { const s = M.sections[+si]; (s.steps = s.steps||[]).push({from:0, to:Math.min(1,(s.actors||[]).length-1), msg:''}); });
+  on('data-delstep', v  => { const [si,ri] = v.split('.').map(Number); M.sections[si].steps.splice(ri,1); });
+  // pick-list reorder / add / delete (index 0 = the "" unset state, kept pinned at the front)
+  on('data-vmove', v => { const [i,dir] = v.split('.').map(Number); const d = M.vocab.decision; const j = i + dir;
+    if(j < 1 || j >= d.length) return false; [d[i], d[j]] = [d[j], d[i]]; });
+  on('data-vdel', i => { i = +i; const v = M.vocab.decision[i]; M.vocab.decision.splice(i,1);
+    if(M.vocab.tone) delete M.vocab.tone[v];
+    M.sections.forEach(s => (s.rows||[]).forEach(r => { if(s.fill && r[s.fill] === v) r[s.fill] = ''; })); });
+  on('data-vadd', () => { const d = M.vocab.decision; let k = 'New status', c = 2; while(d.includes(k)) k = 'New status ' + (c++);
+    d.push(k); (M.vocab.tone = M.vocab.tone || {})[k] = 'warn'; });
+  on('data-addactor',si => { const s = M.sections[+si]; (s.actors = s.actors||[]).push('New actor'); });
+  on('data-delactor',v  => { if(!confirm('Remove this actor? Steps that reference it reset to the first actor.')) return false;
+    const [si,ai] = v.split('.').map(Number); const s = M.sections[si]; s.actors.splice(ai,1);
+    (s.steps||[]).forEach(st => { ['from','to'].forEach(f => { if(st[f]===ai) st[f]=0; else if(st[f]>ai) st[f]--; }); }); });
+}
+
+// keep parked-item back-references (_k = "sectionIdx.rowIdx") valid after a row/section is spliced out
+function fixParked(map){ if(!M.parked) return; M.parked = M.parked.map(p => p._k ? map(p) : p).filter(Boolean); }
+function shiftKey(p, si, ri){ const [ps,pr] = p._k.split('.').map(Number); return (ps===si && pr>ri) ? {...p, _k:ps+'.'+(pr-1)} : p; }
+
+// blank sections for the "+ section" / "+ sequence" buttons
+function newId(p){ let n=1; while(M.sections.some(s=>s.id===p+n)) n++; return p+n; }
+function blankGrid(){ return { id:newId('sec'), title:'New section', tag:'', intro:'', fill:'decision',
+  cols:[{f:'n',h:'#',w:34},{f:'topic',h:'Topic',w:190},{f:'heard',h:'Notes',edit:true},
+        {f:'decision',h:'Decision',pick:'decision',w:150},{f:'owner',h:'Owner',edit:true,w:120},
+        {f:'detail',h:'Detail',edit:true,detail:true}],
+  rows:[{n:1,topic:'',heard:'',decision:'',owner:'',detail:''}], close:[] }; }
+function blankSeq(){ return { id:newId('seq'), title:'New sequence', tag:'sequence', kind:'sequence', intro:'',
+  actors:['Actor A','Actor B'], steps:[{from:0,to:1,msg:''}] }; }
+function blankScreens(){ return { id:newId('screens'), title:'Screens', tag:'screens', kind:'screens',
+  intro:'Screens referenced in this session.', shots:[] }; }
+
+// Reset → a blank board: keep the template scaffold (sections, columns, pick-list, tags), wipe
+// every piece of sample text so you start on placeholders rather than the OmniCart demo content.
+function blankModel(){
+  const m = copy(FILE);
+  ['title','subtitle','date','facilitator','present'].forEach(k => m.meta[k] = '');
+  delete m.meta.footer;
+  if(m.spotlight){ m.spotlight.q = ''; m.spotlight.note = ''; m.spotlight.picked = '';
+    (m.spotlight.options||[]).forEach(o => { o.name = o.buys = o.costs = ''; }); }
+  (m.sections||[]).forEach(s => {
+    s.title = ''; s.intro = '';
+    if(s.rows) s.rows.forEach((r,i) => Object.keys(r).forEach(k => {
+      if(k==='n') r[k] = i+1; else if(k==='parked') delete r[k]; else if(typeof r[k]==='string') r[k] = ''; }));
+    if(s.steps) s.steps.forEach(st => st.msg = '');
+    if(s.actors) s.actors = s.actors.map(() => '');
+    if(s.shots) s.shots = [];
+    delete s.close;
+  });
+  m.parked = [];
+  return m;
+}
+
+/* ---- toolbar ---- */
+document.querySelectorAll('header [data-act]').forEach(b => b.onclick = () => {
+  const a = b.dataset.act;
+  if(a === 'theme'){ setTheme(theme === 'dark' ? 'light' : 'dark'); try{ localStorage.setItem(THEME_KEY, theme); }catch(e){} return; }
+  if(a === 'edit'){ UI.edit = !UI.edit; save(false); render(); return; }
+  if(a === 'fold'){
+    const keys = ['spot','parked', ...M.sections.map(s=>s.id)];
+    const anyOpen = keys.some(k => !UI.shut[k]);
+    keys.forEach(k => UI.shut[k] = anyOpen);
+    b.textContent = anyOpen ? 'Expand all' : 'Collapse all';
+    save(false); render(); return;
+  }
+  if(a === 'leak'){ leakHits = leakScan(); render(); return; }
+  if(a === 'filter'){ filter = filter === 'all' ? 'unresolved' : filter === 'unresolved' ? 'parked' : 'all';
+    b.textContent = 'Filter: ' + (filter === 'all' ? 'All' : filter === 'unresolved' ? 'Unresolved' : 'Parked'); render(); return; }
+  // JSON is your own working copy; Excel and HTML go to clients, so they run the leak gate first.
+  if(a === 'json'){ clearDirty(); download(slug()+'.json', new Blob([JSON.stringify(M, null, 2)], {type:'application/json'})); flashSaved(); return; }
+  if(a === 'xlsx'){ if(guardLeaks('xlsx') || guardImages('xlsx')) return; clearDirty(); exportXlsx(); flashSaved(); return; }
+  if(a === 'html'){ if(guardLeaks('html') || guardImages('html')) return; clearDirty(); exportHtml(); flashSaved(); return; }
+  if(a === 'pdf'){ if(guardLeaks('pdf')) return; window.print(); return; }  // beforeprint expands sections; print CSS forces the light palette
+  if(a === 'copy'){ if(guardLeaks('copy')) return; doCopy(); return; }
+  if(a === 'import'){ $('#file').click(); return; }
+  if(a === 'reset'){
+    if(confirm('Clear the board and start from blank placeholders?\n\nThis erases ALL text — the sample content and anything you have filled in — and cannot be undone. Export JSON first if you might want it back.')){
+      M = blankModel(); UI = DEFAULT_UI(); resetView(); save(false); clearDirty(); render();
+    }
+  }
+});
+function clearDirty(){ dirty = false; $('#badge').classList.remove('on'); }
+// reset view-only chrome (filter + toolbar labels) — call after Reset/Import so a stale filter doesn't hide rows
+function resetView(){ filter = 'all';
+  const fb = $('#filterbtn'); if(fb) fb.textContent = 'Filter: All';
+  const fd = document.querySelector('[data-act=fold]'); if(fd) fd.textContent = 'Collapse all'; }
+function slug(){ return (M.meta.title||'board').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,''); }
+// briefly confirm a finished export in the badge slot, then restore the unexported-changes indicator
+function flashSaved(){ const b = $('#badge'); b.textContent = '✓ Saved'; b.classList.add('on');
+  setTimeout(() => { b.textContent = '● unexported changes'; b.classList.toggle('on', dirty); }, 1800); }
+
+// A client-facing export is blocked whenever leaks are present. The banner then offers a deliberate,
+// labelled "Export anyway" override (see leakBanner / data-leakproceed) — never a silent second click.
+function guardLeaks(act){
+  const hits = leakScan();
+  if(hits.length){ leakHits = hits; pendingExport = act; render(); return true; }
+  leakHits = null; pendingExport = null; return false;
+}
+
+// Leak check reads text, never pixels — so warn before a client export embeds any logos or
+// screenshots. Same deliberate "export anyway" pattern as the leak gate. (Copy summary is text
+// only, so it isn't gated here.)
+let imgGate = null;   // { n, act } while the image warning is showing
+function countImages(){ let n = 0; const m = M.meta||{}; if(m.logoLeft) n++; if(m.logoRight) n++;
+  M.sections.forEach(s => { if(s.shots) n += s.shots.filter(x => x && x.img).length; }); return n; }
+function guardImages(act){ const n = countImages(); if(n > 0){ imgGate = { n, act }; render(); return true; } imgGate = null; return false; }
+function imgBanner(){
+  if(!imgGate) return '';
+  const x = `<button class="close-x" data-imgclear="1" title="dismiss">×</button>`;
+  return `<div class="leakbar warn" role="status">${x}⚠ <b>${imgGate.n} image${imgGate.n>1?'s':''} will be embedded.</b> Leak check reads text, not pixels — eyeball the screenshots and logos for anything internal (URL bars, system names, notifications) before this leaves the room.<div class="ec" style="padding:8px 0 0"><button class="mini del" data-imgproceed="1">Export ${imgGate.act==='xlsx'?'Excel':'HTML'} anyway</button></div></div>`;
+}
+
+$('#file').onchange = e => {
+  const f = e.target.files[0]; if(!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const next = JSON.parse(rd.result);
+      if(!next.sections || !next.meta) throw new Error('that is not a board file');
+      if(!next.vocab || !Array.isArray(next.vocab.decision)) next.vocab = { decision:[''], tone:{} };  // chips/tone read vocab unguarded
+      M = next; UI = DEFAULT_UI(); resetView(); save(); render();
+    }catch(err){ alert('Could not read that file:\n' + err.message); }
+  };
+  rd.readAsText(f); e.target.value = '';
+};
+
+function download(name, blob){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+
+/* ---- Copy summary: the decisions + parked items as markdown, ready to paste into an
+   email or Teams the moment the session ends. Runs the leak gate first (it's client-facing). ---- */
+function summaryMd(){
+  const m = M.meta||{}, out = ['# ' + (m.title||'Decidedly')];
+  const head = [m.subtitle, m.date, m.facilitator && ('Facilitator: '+m.facilitator), m.present && ('Present: '+m.present)].filter(Boolean);
+  if(head.length) out.push(head.join(' · '));
+  if(M.spotlight){ const sp = M.spotlight, pick = (sp.options.find(o => o.id === sp.picked)||{}).name || '(not decided)';
+    out.push('', '## Decision', '**' + sp.q + '**', '→ ' + pick); if(sp.note) out.push('_' + sp.note + '_'); }
+  M.sections.forEach(s => { if(!s.rows || !s.fill) return;
+    const done = s.rows.filter(r => String(r[s.fill]||'').trim());
+    out.push('', '## ' + s.title);
+    if(!done.length){ out.push('_(nothing resolved yet)_'); return; }
+    done.forEach(r => { const topic = r.topic || r.heard || '(row)';
+      out.push('- **' + topic + '** — ' + r[s.fill] + (r.owner ? ' _(owner: ' + r.owner + ')_' : '')); });
+  });
+  if(M.parked && M.parked.length){ out.push('', '## Parked');
+    M.parked.forEach(p => out.push('- ' + p.item + (p.section ? ' _(' + p.section + ')_' : ''))); }
+  return out.join('\n');
+}
+function copyText(t){
+  if(navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(t).catch(() => fallbackCopy(t));
+  fallbackCopy(t); return Promise.resolve();
+}
+function fallbackCopy(t){ const ta = document.createElement('textarea'); ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); }catch(e){} ta.remove(); }
+function doCopy(){ copyText(summaryMd());
+  const b = $('#badge'); b.textContent = '✓ Copied'; b.classList.add('on');
+  setTimeout(() => { b.textContent = '● unexported changes'; b.classList.toggle('on', dirty); }, 1500); }
+
+/* ---- Save HTML: write the current model back into this page and download it ---- */
+function exportHtml(){
+  const doc = document.documentElement.cloneNode(true);
+  // Never ship the denylist to a client: it's a plaintext list of your internal vocabulary.
+  const clean = { ...M }; delete clean.leaks; delete clean['//leaks'];
+  doc.querySelector('#model').textContent = '\n' + JSON.stringify(clean, null, 2) + '\n';
+  // The snapshot's embedded model now differs from any viewer's saved :src stamp, so the load
+  // guard above makes a fresh open show this frozen state rather than their old localStorage.
+  download(slug() + '-snapshot.html', new Blob(['<!doctype html>\n' + doc.outerHTML], {type:'text/html'}));
+}
+
+/* ---- Excel: a real .xlsx is a zip of hand-written XML parts. No library, still offline.
+   Entries are STORED (not compressed) so we never ship a deflate implementation. ---- */
+const CRC = (() => { const t=[]; for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=c&1?0xEDB88320^(c>>>1):c>>>1; t[n]=c>>>0; }
+  return b => { let c=0xFFFFFFFF; for(let i=0;i<b.length;i++) c=t[(c^b[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }; })();
+function zip(files){
+  const enc=new TextEncoder(), chunks=[], central=[]; let offset=0;
+  const u16=n=>[n&255,(n>>8)&255], u32=n=>[n&255,(n>>8)&255,(n>>16)&255,(n>>>24)&255];
+  files.forEach(f => {
+    const name=enc.encode(f.name), crc=CRC(f.data), len=f.data.length;
+    const local=new Uint8Array([...u32(0x04034b50),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),
+      ...u32(crc),...u32(len),...u32(len),...u16(name.length),...u16(0),...name]);
+    chunks.push(local, f.data);
+    central.push(new Uint8Array([...u32(0x02014b50),...u16(20),...u16(20),...u16(0x0800),...u16(0),...u16(0),...u16(0),
+      ...u32(crc),...u32(len),...u32(len),...u16(name.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(offset),...name]));
+    offset += local.length + len;
+  });
+  const cdSize=central.reduce((a,c)=>a+c.length,0);
+  const eocd=new Uint8Array([...u32(0x06054b50),...u16(0),...u16(0),...u16(files.length),...u16(files.length),...u32(cdSize),...u32(offset),...u16(0)]);
+  return new Blob([...chunks,...central,eocd],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+}
+const xe = s => String(s==null?'':s).replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]/g,'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]));
+const colLetter = n => { let s=''; while(n>0){ const m=(n-1)%26; s=String.fromCharCode(65+m)+s; n=(n-m-1)/26; } return s; };
+function sheetXml(rows, widths){
+  const cols = widths ? `<cols>${widths.map((w,i)=>`<col min="${i+1}" max="${i+1}" width="${w}" customWidth="1"/>`).join('')}</cols>` : '';
+  const body = rows.map((r,ri) => `<row r="${ri+1}">${r.cells.map((c,ci) => {
+    const ref = colLetter(ci+1)+(ri+1), s = c.s?` s="${c.s}"`:'';
+    return (c.v===''||c.v==null) ? `<c r="${ref}"${s}/>`
+      : `<c r="${ref}"${s} t="inlineStr"><is><t xml:space="preserve">${xe(c.v)}</t></is></c>`;
+  }).join('')}</row>`).join('');
+  return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${cols}<sheetData>${body}</sheetData></worksheet>`;
+}
+const STYLES_XML = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><color rgb="FFFFFFFF"/><sz val="11"/><name val="Calibri"/></font></fonts>
+<fills count="4"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FF2F6F4F"/><bgColor indexed="64"/></patternFill></fill>
+<fill><patternFill patternType="solid"><fgColor rgb="FFEAF5EF"/><bgColor indexed="64"/></patternFill></fill></fills>
+<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>
+<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>
+<cellXfs count="3">
+<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1"/>
+<xf numFmtId="0" fontId="0" fillId="3" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>
+</cellXfs>
+<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+
+function buildSheets(){
+  const sheets=[], seen=new Set();
+  const push=(name,xml)=>{ let nm=String(name||'Sheet').replace(/[\[\]:*?\/\\]/g,'-').slice(0,31).trim()||'Sheet';
+    for(let i=2; seen.has(nm); i++) nm=nm.slice(0,28)+'_'+i; seen.add(nm); sheets.push({name:nm,xml}); };
+
+  const sess = [['Title',M.meta.title],['Subtitle',M.meta.subtitle],['Date',M.meta.date],
+                ['Facilitator',M.meta.facilitator],['Present',M.meta.present]].filter(r => r[1]);
+  if(sess.length) push('Session', sheetXml([
+    { cells:[{v:'Field',s:1},{v:'Value',s:1}] },
+    ...sess.map(r => ({ cells:[{v:r[0]},{v:r[1]}] }))
+  ], [20,60]));
+
+  if(M.spotlight){
+    const sp=M.spotlight, pick=(sp.options.find(o=>o.id===sp.picked)||{}).name||'(not decided)';
+    push('Decision', sheetXml([
+      { cells:[{v:'Decision',s:1},{v:'Answer',s:1}] },
+      { cells:[{v:sp.q},{v:pick}] },
+      ...(sp.note?[{cells:[{v:'Note'},{v:sp.note}]}]:[]),
+    ], [70,60]));
+  }
+  M.sections.forEach(s => {
+    if(s.kind === 'sequence'){                    // sequence → From / To / Message sheet
+      const A = s.actors || [];
+      push(s.title || s.id, sheetXml([
+        { cells:[{v:'From',s:1},{v:'To',s:1},{v:'Message',s:1}] },
+        ...(s.steps||[]).map(st => ({ cells:[{v:A[+st.from]||''},{v:A[+st.to]||''},{v:st.msg||''}] }))
+      ], [24,24,60]));
+      return;
+    }
+    if(s.kind === 'screens'){                      // screens → Screenshot / Caption sheet (images can't embed without a lib)
+      push(s.title || s.id, sheetXml([
+        { cells:[{v:'Screenshot',s:1},{v:'Caption',s:1}] },
+        ...(s.shots||[]).map((sh,i) => ({ cells:[{v:'[image '+(i+1)+']'},{v:sh.caption||''}] }))
+      ], [18,70]));
+      return;
+    }
+    if(!s.cols || !s.rows) return;                 // a static figure has nothing to export
+    const rows = [{ cells: s.cols.map(c=>({v:c.h,s:1})) }];
+    s.rows.forEach(r => rows.push({ cells: s.cols.map(c => ({
+      v: r[c.f]==null?'':r[c.f],
+      s: (s.fill && String(r[s.fill]||'').trim()) ? 2 : 0
+    })) }));
+    push(s.title || s.id, sheetXml(rows, s.cols.map((c,ci)=> ci===0?6 : c.w?Math.max(14,c.w/7):42)));
+  });
+  if(M.parked && M.parked.length){
+    push('Parking lot', sheetXml([
+      { cells:[{v:'Item',s:1},{v:'From',s:1}] },
+      ...M.parked.map(p=>({cells:[{v:p.item},{v:p.section||''}]}))
+    ], [70,40]));
+  }
+  return sheets;
+}
+function exportXlsx(){
+  const enc=new TextEncoder(), sheets=buildSheets();
+  const f=(name,str)=>({name,data:enc.encode(str)});
+  const files=[
+    f('[Content_Types].xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+${sheets.map((s,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}
+</Types>`),
+    f('_rels/.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`),
+    f('xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets>
+${sheets.map((s,i)=>`<sheet name="${xe(s.name)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')}
+</sheets></workbook>`),
+    f('xl/_rels/workbook.xml.rels',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+${sheets.map((s,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')}
+<Relationship Id="rId${sheets.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`),
+    f('xl/styles.xml', STYLES_XML),
+    ...sheets.map((s,i)=>f(`xl/worksheets/sheet${i+1}.xml`, s.xml)),
+  ];
+  download(slug()+'.xlsx', zip(files));
+}
+
+// Enter/Space activate the role="button" spans/divs (chips, spotlight options, exit-criteria toggles).
+// Toolbar buttons and fold chevrons are native <button>s and handle keys themselves.
+document.addEventListener('keydown', e => {
+  const el = e.target;
+  if((e.key === 'Enter' || e.key === ' ') && el && el.getAttribute && el.getAttribute('role') === 'button'){
+    e.preventDefault(); el.click();
+  }
+});
+
+render();
+</script>
