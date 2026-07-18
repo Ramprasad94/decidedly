@@ -3,7 +3,7 @@
 All notable changes to **Decidedly** are recorded here. The tool is a single
 file (`board.html`); each version is a self-contained release of that file.
 
-## Unreleased
+## v1.1 — 2026-07-18
 
 ### Added
 - **Download a sequence diagram as PNG** — a ⬇ PNG button under each live
