@@ -27,6 +27,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Decidedly</title>
+<!-- favicon: the write-up mark, inlined as a data URI so board.html stays a single
+     self-contained file with no network calls (matches the whole-file ethos) -->
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCIgdmlld0JveD0iMCAwIDY0IDY0IiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IkRlY2lkZWRseSI+CiAgPHJlY3QgeD0iNCIgeT0iNCIgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiByeD0iMTQiIGZpbGw9IiNhMTVkMGUiLz4KICA8cGF0aCBkPSJNMjAgMTUgaDE1IGwxMCAxMCB2MjQgYTIuNSAyLjUgMCAwIDEgLTIuNSAyLjUgaC0yMi41IGEyLjUgMi41IDAgMCAxIC0yLjUgLTIuNSBWMTcuNSBhMi41IDIuNSAwIDAgMSAyLjUgLTIuNSBaIiBmaWxsPSIjZmZmIi8+CiAgPHBhdGggZD0iTTM1IDE1IHY3LjUgYTIuNSAyLjUgMCAwIDAgMi41IDIuNSBoNy41IiBmaWxsPSJub25lIiBzdHJva2U9IiNhMTVkMGUiIHN0cm9rZS13aWR0aD0iMi40IiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CiAgPHBhdGggZD0iTTI1IDM3IEwzMCA0MiBMNDAgMzAuNSIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjAyNDJiIiBzdHJva2Utd2lkdGg9IjQuNCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=">
 
 <!-- ======================================================================
      THE MODEL — edit this (or use the "Edit" button in the running board).
@@ -178,11 +181,12 @@
   :root{
     color-scheme:light;      /* tell the browser we theme ourselves — stops Auto Dark Mode from re-tinting text invisible */
     --ink:#1f2733; --mut:#5b6572; --line:#e2e6ea; --bg:#f4f6f8; --card:#fff;
-    --accent:#2f6f4f;        /* pick your brand colour — this drives the header + confirmed rows */
-    --accent-soft:#eaf5ef;
-    --warn:#c8791d; --warn-soft:#fbf1e3;
+    --accent:#a15d0e;        /* brand amber — drives the meter, chips + wordmark accent */
+    --accent-soft:#fbf3e7;
+    --warn:#3a6ea5; --warn-soft:#e9f1f9; --on-warn:#fff;   /* "needs definition": a calm blue, distinct from the amber brand */
+    --danger:#bd3a2c; --danger-soft:#f9e8e6;               /* destructive actions + the leak stop-signal (was amber) */
     --open:#fff; --chip:#eef1f4;
-    --head:#ffffff;          /* header bar — neutral now; the brand colour is reserved for the meter, chips + wordmark */
+    --head:#ffffff;          /* header bar — neutral; the brand amber lives on the meter, chips + wordmark */
     --head-ink:#1f2733;      /* title text on the neutral header */
     --on-accent:#fff;        /* text/icon colour that sits on an accent-filled chip or button */
     --shadow:0 1px 2px rgba(20,30,45,.05), 0 4px 14px rgba(20,30,45,.05);
@@ -194,15 +198,15 @@
   @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
     color-scheme:dark;
     --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
-    --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
-    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#0f2019; --head-ink:#e7ebf0;
+    --accent:#e2a552; --accent-soft:#2b2213; --warn:#6fa8e0; --warn-soft:#17232f; --on-warn:#0e1f2e; --danger:#e17c6f; --danger-soft:#2c1613;
+    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#241804; --head-ink:#e7ebf0;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
   } }
   :root[data-theme="dark"]{
     color-scheme:dark;
     --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
-    --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
-    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#0f2019; --head-ink:#e7ebf0;
+    --accent:#e2a552; --accent-soft:#2b2213; --warn:#6fa8e0; --warn-soft:#17232f; --on-warn:#0e1f2e; --danger:#e17c6f; --danger-soft:#2c1613;
+    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#241804; --head-ink:#e7ebf0;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
   }
   *{box-sizing:border-box}
@@ -223,8 +227,11 @@
   header .sub{font-size:12px; color:var(--mut); margin-top:2px}
   /* permanent tool wordmark — static, not in the model, so Edit/Reset/Import can't remove it; bakes into exports.
      This is where the brand colour lives in the chrome now that the bar itself is neutral. */
-  .wordmark{align-self:center; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--accent); background:var(--accent-soft); padding:3px 8px; border:1px solid transparent; border-radius:6px; white-space:nowrap}
+  .wordmark{align-self:center; display:inline-flex; align-items:center; gap:8px; white-space:nowrap}
+  .wm-ico{flex:none; display:block}
+  .wm-txt{font-family:"Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+    font-weight:600; font-size:16.5px; letter-spacing:-.01em; color:var(--head-ink)}
+  .wm-dot{color:#a15d0e}
   header .grow{flex:1}
   .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap; color:var(--head-ink)}
   .meter .bar{width:120px; height:7px; border-radius:5px; background:var(--chip); overflow:hidden}
@@ -238,7 +245,7 @@
   }
   .hbtn:hover{background:var(--bg); border-color:var(--mut)}
   .hbtn.on{background:var(--accent); color:var(--on-accent); border-color:var(--accent); font-weight:600}
-  .hbtn.danger:hover{background:var(--warn); border-color:var(--warn); color:#fff}
+  .hbtn.danger:hover{background:var(--danger); border-color:var(--danger); color:#fff}
 
   /* toolbar dropdown menus — native <details>, so Export/overflow collapse without a JS widget */
   .menu{position:relative; display:inline-block}
@@ -252,8 +259,8 @@
     text-align:left; font:inherit; font-size:13px; color:var(--ink); background:none; border:none; border-radius:6px;
     padding:7px 10px; cursor:pointer}
   .menu-pop button:hover{background:var(--bg)}
-  .menu-pop button.danger{color:var(--warn)}
-  .menu-pop button.danger:hover{background:var(--warn-soft)}
+  .menu-pop button.danger{color:var(--danger)}
+  .menu-pop button.danger:hover{background:var(--danger-soft)}
   .menu-pop .mk{font-size:11px; color:var(--mut); font-weight:400; white-space:nowrap}
 
   /* ---- layout ---- */
@@ -261,7 +268,7 @@
   .editbar{background:var(--warn-soft); border:1px solid var(--warn); color:var(--ink); border-radius:10px;
     font-size:13px; padding:10px 14px; margin:18px 0}
   .leakbar{margin:18px 0; border-radius:10px; padding:10px 14px; font-size:13px}
-  .leakbar.warn{background:var(--warn-soft); border:1px solid var(--warn)}
+  .leakbar.warn{background:var(--danger-soft); border:1px solid var(--danger)}
   .leakbar.ok{background:var(--accent-soft); border:1px solid var(--accent)}
   /* session-complete end-state — the quiet payoff when every row is resolved */
   .donebar{margin:18px 0; border-radius:10px; padding:12px 16px; font-size:13.5px; display:flex; gap:8px; align-items:baseline;
@@ -320,7 +327,7 @@
   .chip.ok{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}   /* provisional / agreed — outline */
   .chip.done{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}    /* final / confirmed — filled */
   .chip.done:before{content:"✓ "}
-  .chip.warn{background:var(--warn); color:#241606; border-color:var(--warn)}                 /* dark text for AA on amber */
+  .chip.warn{background:var(--warn); color:var(--on-warn); border-color:var(--warn)}            /* needs definition — blue */
   .chip.open{color:var(--mut)}
   .chip.open:before{content:"＋ set"}
 
@@ -329,13 +336,13 @@
   .mini{font-size:11px; color:var(--mut); background:none; border:1px solid var(--line); border-radius:5px; padding:2px 7px; cursor:pointer}
   .mini:hover{border-color:var(--accent); color:var(--accent)}
   .mini.on{color:var(--accent); border-color:var(--accent)}
-  .mini.del:hover{border-color:var(--warn); color:var(--warn)}
+  .mini.del:hover{border-color:var(--danger); color:var(--danger)}
   .ec{padding:8px 18px; display:flex; gap:8px; align-items:center; flex-wrap:wrap}
   .ec .lbl{font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-weight:600}
   .add{font-size:12px; color:var(--accent); background:none; border:1px dashed var(--accent); border-radius:6px; padding:3px 10px; cursor:pointer}
   .add:hover{background:var(--accent-soft)}
   .x{border:none; background:none; color:var(--mut); cursor:pointer; font-size:14px; line-height:1; padding:0 2px}
-  .x:hover{color:var(--warn)}
+  .x:hover{color:var(--danger)}
   tr.detail td{background:var(--bg); padding-top:0}
   tr.detail .dbox{color:var(--mut); font-size:12.5px; padding:8px 12px; background:var(--card); border:1px solid var(--line); border-radius:6px}
 
@@ -367,9 +374,11 @@
   .foot{text-align:center; color:var(--mut); font-size:12px; margin:40px 0 0}
   /* permanent tool credit — lives outside the editable model, so Edit/Reset/Import never touch it
      and it bakes into every Save HTML / PDF export. Not contenteditable: can't be edited or removed in-app. */
-  .credit{text-align:center; color:var(--mut); font-size:12px; line-height:1.6;
-    padding:20px 20px 28px; border-top:1px solid var(--line); margin-top:40px}
-  .credit b{color:var(--ink); font-weight:700; letter-spacing:-.01em}
+  .credit{display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; color:var(--mut); font-size:12px; line-height:1.6;
+    padding:22px 20px 30px; border-top:1px solid var(--line); margin-top:40px}
+  .credit .wordmark{align-self:center}
+  .credit .wm-txt{font-size:15px}
+  .credit-line{max-width:640px}
   .credit a{color:inherit; text-decoration:underline}
   input[type=file]{display:none}
   .swatch{width:30px; height:26px; padding:0; border:1px solid rgba(255,255,255,.3); border-radius:6px;
@@ -415,7 +424,7 @@
     :root, :root[data-theme="dark"], :root[data-theme="light"]{
       color-scheme:light;
       --ink:#1f2733; --mut:#5b6572; --line:#e2e6ea; --bg:#fff; --card:#fff;
-      --accent:#2f6f4f; --accent-soft:#eaf5ef; --warn:#c8791d; --warn-soft:#fbf1e3;
+      --accent:#a15d0e; --accent-soft:#fbf3e7; --warn:#3a6ea5; --warn-soft:#e9f1f9; --on-warn:#fff; --danger:#bd3a2c; --danger-soft:#f9e8e6;
       --open:#fff; --chip:#eef1f4; --head:#fff; --on-accent:#fff; --head-ink:#1f2733; --shadow:none;
     }
     header{position:static; box-shadow:none}
@@ -429,7 +438,15 @@
 </style>
 
 <header>
-  <span class="wordmark" title="Decidedly — the tool">Decidedly</span>
+  <span class="wordmark" title="Decidedly — the tool">
+    <svg class="wm-ico" width="24" height="24" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect x="4" y="4" width="56" height="56" rx="14" fill="#a15d0e"/>
+      <path d="M20 15 h15 l10 10 v24 a2.5 2.5 0 0 1 -2.5 2.5 h-22.5 a2.5 2.5 0 0 1 -2.5 -2.5 V17.5 a2.5 2.5 0 0 1 2.5 -2.5 Z" fill="#fff"/>
+      <path d="M35 15 v7.5 a2.5 2.5 0 0 0 2.5 2.5 h7.5" fill="none" stroke="#a15d0e" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M25 37 L30 42 L40 30.5" fill="none" stroke="#20242b" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="wm-txt">Decidedly<span class="wm-dot">.</span></span>
+  </span>
   <img id="logo-left" class="brandlogo" alt="" hidden>
   <div>
     <h1 class="ttl" id="h-ttl"></h1>
@@ -472,7 +489,16 @@
 
 <main id="app"></main>
 <footer class="credit" role="contentinfo">
-  <b>Decidedly</b> · Created by Ramprasad Bommaganty · <a href="https://keepingupwiththecloud.com" target="_blank" rel="noopener">keepingupwiththecloud.com</a> · MIT-licensed — free to use, modify &amp; share.
+  <span class="wordmark" title="Decidedly — the tool">
+    <svg class="wm-ico" width="20" height="20" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+      <rect x="4" y="4" width="56" height="56" rx="14" fill="#a15d0e"/>
+      <path d="M20 15 h15 l10 10 v24 a2.5 2.5 0 0 1 -2.5 2.5 h-22.5 a2.5 2.5 0 0 1 -2.5 -2.5 V17.5 a2.5 2.5 0 0 1 2.5 -2.5 Z" fill="#fff"/>
+      <path d="M35 15 v7.5 a2.5 2.5 0 0 0 2.5 2.5 h7.5" fill="none" stroke="#a15d0e" stroke-width="2.4" stroke-linejoin="round"/>
+      <path d="M25 37 L30 42 L40 30.5" fill="none" stroke="#20242b" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span class="wm-txt">Decidedly<span class="wm-dot">.</span></span>
+  </span>
+  <span class="credit-line">Created by Ramprasad Bommaganty · <a href="https://keepingupwiththecloud.com" target="_blank" rel="noopener">keepingupwiththecloud.com</a> · MIT-licensed — free to use, modify &amp; share.</span>
 </footer>
 <input type="file" id="file" accept=".json,application/json">
 <input type="file" id="logofile-left" accept="image/*">
@@ -524,7 +550,7 @@ setTheme(theme);
 /* ---- brand colour: one picked hex drives the whole palette. The soft tint is derived per
    theme via color-mix (so it stays subtle in light AND dark); the on-accent text colour is
    chosen by luminance so it's readable on any hue. Stored in meta.accent → exports + reimports. */
-const DEFAULT_ACCENT = '#2f6f4f';
+const DEFAULT_ACCENT = '#a15d0e';
 function relLum(hex){
   const h = hex.replace('#',''); const n = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
   const c = [0,2,4].map(i => { let v = parseInt(n.slice(i,i+2),16)/255; return v<=.03928 ? v/12.92 : ((v+.055)/1.055)**2.4; });
@@ -935,7 +961,9 @@ function renameVocab(oldV, newV){
 // The leading "" (the unset state) is pinned at index 0 and hidden from the list.
 function pillEditor(){
   if(!UI.edit) return '';
-  const toneName = { open:'neutral', warn:'amber', ok:'green (agreed)', done:'green ✓ (final)' };
+  // labels describe the visual treatment, not a colour — the accent (outline / filled) follows the
+  // brand swatch, so naming a colour here would go stale the moment the brand changes.
+  const toneName = { open:'neutral', warn:'attention', ok:'outline', done:'filled ✓' };
   const toneSel = cur => ['open','warn','ok','done'].map(t => `<option value="${t}"${t===cur?' selected':''}>${toneName[t]}</option>`).join('');
   const rows = (M.vocab.decision||[]).map((v,i) => ({v,i})).filter(x => x.v !== '').map(({v,i}) => `<div class="pill-row">
       <span class="ce" contenteditable="true" data-vocab="${i}" data-ph="value">${esc(v)}</span>
