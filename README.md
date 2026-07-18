@@ -121,7 +121,7 @@ That's the whole API. If you break the JSON, the board tells you when it loads.
 
 ## A note on where this came from
 
-I build these for a living — I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. This template is the client-free version of the boards I generate as part of a larger pipeline that turns a session transcript into downstream delivery artifacts (Q&A trackers, decision logs, backlog, readouts). I built and refined it with [Claude Code](https://claude.com/claude-code). The board is the part I could share without any client data attached — so here it is.
+I'm a Salesforce architect and tech lead, and discovery is where projects are won or lost. I built this to help with one of my own projects — a client-free version of the boards I use to turn a discovery session into downstream delivery artifacts — and figured it was worth sharing with others.
 
 If you use it, I'd genuinely like to hear how it went. Find me at [keepingupwiththecloud.com](https://keepingupwiththecloud.com/) or on [<img src="https://cdn.simpleicons.org/linkedin/0A66C2" width="14" alt=""> LinkedIn](https://www.linkedin.com/in/ramprasad-bommaganty/).
 
