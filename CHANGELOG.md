@@ -11,7 +11,10 @@ server, no dependencies, and no network calls.
 
 ### Added
 - **Decision chips + custom pick-list** — cycle each row through your own
-  vocabulary; the colour flows to the whole row and the progress meter.
+  vocabulary, with distinct states (e.g. *Agreed* outlined vs *Confirmed*
+  filled ✓); the colour drives the row accent and the progress meter.
+- **Session-complete state** — when every row is resolved, the meter reads
+  "✓ All N resolved" and a calm banner invites you to Export or Copy summary.
 - **Spotlight card** — the one decision a session hangs on, framed as options
   with what each *buys* and *costs*.
 - **Live sequence diagrams**, **screenshot galleries** (add or paste), **detail
@@ -27,6 +30,15 @@ server, no dependencies, and no network calls.
   `localStorage` persistence, and a leave-the-page guard.
 - **Blank Reset** — clear all text back to placeholders while keeping the
   template scaffold, behind a confirmation.
+- **Streamlined toolbar** — exports collapse into an **Export** menu, with
+  Import/Reset in an overflow menu (keyboard- and outside-click-dismissable).
+- **Neutral, brand-aware header** — the header stays neutral in both themes; your
+  picked brand colour drives the accents (meter, chips, tags, wordmark) instead
+  of flooding the bar.
+- **Accessible & semantic** — `<!doctype html>` + `lang`, real `<h1>`/`<h2>`
+  headings, ARIA labels on editable cells, and AA-contrast text throughout.
+- **Resilient save** — edits survive even if `localStorage` is full (kept in
+  memory, with a badge warning) instead of throwing.
 - Permanent **Decidedly** wordmark and author/MIT-license credit in the footer.
 
 MIT-licensed. Created by Ramprasad Bommaganty · https://keepingupwiththecloud.com
