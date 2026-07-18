@@ -3,6 +3,26 @@
 All notable changes to **Decidedly** are recorded here. The tool is a single
 file (`board.html`); each version is a self-contained release of that file.
 
+## v1.2 — 2026-07-18
+
+### Added
+- **A proper identity.** A "Decidedly" logo — a folded write-up sheet with a
+  decision check, on an amber tile, paired with a serif wordmark. It appears as
+  the favicon (inlined, no network call), in the header, and in the footer.
+
+### Changed
+- **Brand colour is now amber** (`#a15d0e`) instead of the old green, matching
+  the logo. AA contrast verified for every accent pairing.
+- **Clearer status colours.** With amber as the brand, the palette now reads as
+  three distinct signals: amber = agreed / confirmed, **blue** = needs
+  definition, **red** = destructive actions and the leak stop-signal. (Blue and
+  red both used to be amber.)
+
+### Fixed
+- The decision-tone editor no longer mislabels its options with a fixed colour
+  name ("green ✓") — the labels now describe the treatment, so they stay honest
+  when you change the brand colour.
+
 ## v1.1 — 2026-07-18
 
 ### Added
