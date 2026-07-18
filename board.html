@@ -1,3 +1,5 @@
+<!doctype html>
+<html lang="en">
 <!--
   Decidedly — a single-file, offline, live-fill board for running a
   discovery / requirements session and walking out with the decisions captured.
@@ -41,7 +43,7 @@
 
   "vocab": {
     "decision": ["", "Needs definition", "Agreed", "Confirmed"],
-    "tone": { "": "open", "Confirmed": "ok", "Agreed": "ok", "Needs definition": "warn" },
+    "tone": { "": "open", "Confirmed": "done", "Agreed": "ok", "Needs definition": "warn" },
     "help": "Click the chip to move a row through: blank → Needs definition → Agreed → Confirmed."
   },
 
@@ -179,8 +181,8 @@
     --accent-soft:#eaf5ef;
     --warn:#c8791d; --warn-soft:#fbf1e3;
     --open:#fff; --chip:#eef1f4;
-    --head:#2f6f4f;          /* header bar — kept dark enough for white text in both themes */
-    --head-ink:#fff;         /* text on the header bar; without this the light default falls back to dark --ink */
+    --head:#ffffff;          /* header bar — neutral now; the brand colour is reserved for the meter, chips + wordmark */
+    --head-ink:#1f2733;      /* title text on the neutral header */
     --on-accent:#fff;        /* text/icon colour that sits on an accent-filled chip or button */
     --shadow:0 1px 2px rgba(20,30,45,.05), 0 4px 14px rgba(20,30,45,.05);
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -192,14 +194,14 @@
     color-scheme:dark;
     --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
     --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
-    --open:#1a1f27; --chip:#232a34; --head:#173328; --on-accent:#0f2019; --head-ink:#fff;
+    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#0f2019; --head-ink:#e7ebf0;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
   } }
   :root[data-theme="dark"]{
     color-scheme:dark;
     --ink:#e7ebf0; --mut:#9aa4b1; --line:#2b3340; --bg:#12161c; --card:#1a1f27;
     --accent:#5fbf8c; --accent-soft:#16281f; --warn:#e0a252; --warn-soft:#2a2114;
-    --open:#1a1f27; --chip:#232a34; --head:#173328; --on-accent:#0f2019; --head-ink:#fff;
+    --open:#1a1f27; --chip:#232a34; --head:#1a1f27; --on-accent:#0f2019; --head-ink:#e7ebf0;
     --shadow:0 1px 2px rgba(0,0,0,.3), 0 4px 14px rgba(0,0,0,.3);
   }
   *{box-sizing:border-box}
@@ -210,34 +212,48 @@
   header{
     position:sticky; top:0; z-index:20; display:flex; align-items:center; gap:10px; flex-wrap:wrap; row-gap:8px;
     padding:12px 20px; background:var(--head); color:var(--head-ink);
-    box-shadow:0 2px 10px rgba(20,30,45,.12);
+    border-bottom:1px solid var(--line); box-shadow:0 1px 3px rgba(20,30,45,.06);
   }
-  /* ponytail: header buttons/meter assume a dark bar (white-ish tints). A very light brand
-     colour flips --head-ink to dark for the title, but the button tints stay light. Fine for
-     the usual saturated corporate colours; revisit only if light-brand headers become common. */
-  header .sep{width:1px; align-self:stretch; background:rgba(255,255,255,.22); margin:0 2px}
+  header .sep{width:1px; align-self:stretch; background:var(--line); margin:0 2px}
   /* keyboard focus ring — visible for every interactive control (none existed before) */
   :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
-  header :focus-visible, .chip:focus-visible, .ck:focus-visible{outline-color:#fff}
   @media (prefers-reduced-motion: reduce){ *{transition:none !important; animation:none !important} }
-  header .ttl{font-weight:700; font-size:18px; line-height:1.15; letter-spacing:-.01em}
-  header .sub{font-size:12px; opacity:.82; margin-top:2px}
-  /* permanent tool wordmark — static, not in the model, so Edit/Reset/Import can't remove it; bakes into exports */
+  header .ttl{font-weight:700; font-size:20px; line-height:1.15; letter-spacing:-.01em; margin:0}
+  header .sub{font-size:12px; color:var(--mut); margin-top:2px}
+  /* permanent tool wordmark — static, not in the model, so Edit/Reset/Import can't remove it; bakes into exports.
+     This is where the brand colour lives in the chrome now that the bar itself is neutral. */
   .wordmark{align-self:center; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase;
-    color:var(--head-ink); opacity:.6; padding:3px 8px; border:1px solid rgba(255,255,255,.25); border-radius:6px; white-space:nowrap}
+    color:var(--accent); background:var(--accent-soft); padding:3px 8px; border:1px solid transparent; border-radius:6px; white-space:nowrap}
   header .grow{flex:1}
-  .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap}
-  .meter .bar{width:120px; height:7px; border-radius:5px; background:rgba(255,255,255,.28); overflow:hidden}
-  .meter .fill{display:block; height:100%; width:0; background:#fff; border-radius:5px; transition:width .3s}
-  .badge{font-size:12px; opacity:0; transition:opacity .2s; white-space:nowrap}
+  .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap; color:var(--head-ink)}
+  .meter .bar{width:120px; height:7px; border-radius:5px; background:var(--chip); overflow:hidden}
+  .meter .fill{display:block; height:100%; width:0; background:var(--accent); border-radius:5px; transition:width .3s}
+  .meter.done{color:var(--accent)}
+  .badge{font-size:12px; opacity:0; transition:opacity .2s; white-space:nowrap; color:var(--mut)}
   .badge.on{opacity:1}
   .hbtn{
     font-family:inherit; font-size:12.5px; line-height:1.4; padding:5px 10px; border-radius:6px; cursor:pointer; user-select:none;
-    background:rgba(255,255,255,.14); border:1px solid rgba(255,255,255,.22); color:#fff;
+    background:transparent; border:1px solid var(--line); color:var(--ink);
   }
-  .hbtn:hover{background:rgba(255,255,255,.26)}
-  .hbtn.on{background:#fff; color:var(--head); border-color:#fff; font-weight:600}
-  .hbtn.danger:hover{background:var(--warn); border-color:var(--warn)}
+  .hbtn:hover{background:var(--bg); border-color:var(--mut)}
+  .hbtn.on{background:var(--accent); color:var(--on-accent); border-color:var(--accent); font-weight:600}
+  .hbtn.danger:hover{background:var(--warn); border-color:var(--warn); color:#fff}
+
+  /* toolbar dropdown menus — native <details>, so Export/overflow collapse without a JS widget */
+  .menu{position:relative; display:inline-block}
+  .menu>summary{list-style:none; cursor:pointer}
+  .menu>summary::-webkit-details-marker{display:none}
+  .menu[open]>summary.hbtn{background:var(--bg); border-color:var(--mut)}
+  .menu-pop{position:absolute; top:calc(100% + 6px); right:0; z-index:30;
+    background:var(--card); border:1px solid var(--line); border-radius:8px; box-shadow:var(--shadow);
+    padding:5px; min-width:210px; display:flex; flex-direction:column; gap:2px}
+  .menu-pop button{display:flex; justify-content:space-between; align-items:baseline; gap:12px; width:100%;
+    text-align:left; font:inherit; font-size:13px; color:var(--ink); background:none; border:none; border-radius:6px;
+    padding:7px 10px; cursor:pointer}
+  .menu-pop button:hover{background:var(--bg)}
+  .menu-pop button.danger{color:var(--warn)}
+  .menu-pop button.danger:hover{background:var(--warn-soft)}
+  .menu-pop .mk{font-size:11px; color:var(--mut); font-weight:400; white-space:nowrap}
 
   /* ---- layout ---- */
   main{max-width:1160px; margin:24px auto 80px; padding:0 20px}
@@ -246,6 +262,9 @@
   .leakbar{margin:18px 0; border-radius:10px; padding:10px 14px; font-size:13px}
   .leakbar.warn{background:var(--warn-soft); border:1px solid var(--warn)}
   .leakbar.ok{background:var(--accent-soft); border:1px solid var(--accent)}
+  /* session-complete end-state — the quiet payoff when every row is resolved */
+  .donebar{margin:18px 0; border-radius:10px; padding:12px 16px; font-size:13.5px; display:flex; gap:8px; align-items:baseline;
+    background:var(--accent-soft); border:1px solid var(--accent); color:var(--ink)}
   .leakbar ul{margin:8px 0 4px; padding-left:20px}
   .leakbar li{margin:2px 0}
   .leakbar code{background:rgba(127,140,160,.18); padding:0 4px; border-radius:3px; font-size:12px}
@@ -255,7 +274,7 @@
   .card .head{display:flex; align-items:center; gap:10px; padding:14px 18px; cursor:pointer; border-bottom:1px solid var(--line)}
   .card.shut .head{border-bottom:none}
   .card .chev{color:var(--mut); font-size:12px; width:16px; background:none; border:none; cursor:pointer; padding:0; font-family:inherit}
-  .card .h-ttl{font-weight:650; font-size:15px}
+  .card .h-ttl{font-weight:650; font-size:15px; margin:0}   /* real <h2> now — reset the UA margin */
   .card .tag{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--accent); background:var(--accent-soft); padding:2px 8px; border-radius:20px; font-weight:600}
   .card.shut .body{display:none}
   .intro{color:var(--mut); font-size:13px; padding:12px 18px 4px}
@@ -278,16 +297,15 @@
   table{width:100%; border-collapse:collapse; font-size:13.5px}
   thead th{text-align:left; font-size:11px; text-transform:uppercase; letter-spacing:.05em; color:var(--mut); font-weight:600; padding:10px 12px; border-bottom:1px solid var(--line); background:var(--bg)}
   tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top}
-  tbody tr.ok  td{background:var(--accent-soft)}
-  tbody tr.warn td{background:var(--warn-soft)}
-  tbody tr.parked td{opacity:.5}
+  tbody tr.warn td{background:var(--warn-soft)}   /* only "needs definition" rows tint — draws the eye to open work, not a green flood */
+  tbody tr.parked td{color:var(--mut); background:var(--bg)}
   tbody tr:last-child td{border-bottom:none}
   td.n{color:var(--mut); font-variant-numeric:tabular-nums}
   td.topic{font-weight:600}
   .edit{outline:0; border-radius:4px; min-height:20px; min-width:24px; display:inline-block}
   .edit:hover{background:rgba(127,140,160,.08)}
   .edit:focus{background:rgba(127,140,160,.12); box-shadow:inset 0 0 0 1px var(--accent)}
-  .edit:empty:before, .ce:empty:before{content:attr(data-ph); color:var(--mut); opacity:.75}
+  .edit:empty:before, .ce:empty:before{content:attr(data-ph); color:var(--mut)}  /* full --mut clears 4.5:1; the old .75 opacity did not */
   .tablewrap{overflow-x:auto}
 
   /* structural edit spans — only interactive in Edit mode */
@@ -298,8 +316,10 @@
 
   /* decision chip */
   .chip{display:inline-block; font-size:12px; font-weight:600; padding:3px 10px; border-radius:20px; cursor:pointer; user-select:none; border:1px solid var(--line); background:var(--chip); white-space:nowrap}
-  .chip.ok{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}
-  .chip.warn{background:var(--warn); color:var(--on-accent); border-color:var(--warn)}
+  .chip.ok{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}   /* provisional / agreed — outline */
+  .chip.done{background:var(--accent); color:var(--on-accent); border-color:var(--accent)}    /* final / confirmed — filled */
+  .chip.done:before{content:"✓ "}
+  .chip.warn{background:var(--warn); color:#241606; border-color:var(--warn)}                 /* dark text for AA on amber */
   .chip.open{color:var(--mut)}
   .chip.open:before{content:"＋ set"}
 
@@ -395,10 +415,10 @@
       color-scheme:light;
       --ink:#1f2733; --mut:#5b6572; --line:#e2e6ea; --bg:#fff; --card:#fff;
       --accent:#2f6f4f; --accent-soft:#eaf5ef; --warn:#c8791d; --warn-soft:#fbf1e3;
-      --open:#fff; --chip:#eef1f4; --head:#2f6f4f; --on-accent:#fff; --head-ink:#fff; --shadow:none;
+      --open:#fff; --chip:#eef1f4; --head:#fff; --on-accent:#fff; --head-ink:#1f2733; --shadow:none;
     }
     header{position:static; box-shadow:none}
-    header .hbtn, header .meter, header .badge, header .sep, .swatch,
+    header .hbtn, header .meter, header .badge, header .sep, .swatch, .menu,
     .rowtools, .mini, .add, .x, .leakbar, .editbar, .chev{display:none !important}
     .card{break-inside:avoid; box-shadow:none}
     tr, .shot{break-inside:avoid}
@@ -411,7 +431,7 @@
   <span class="wordmark" title="Decidedly — the tool">Decidedly</span>
   <img id="logo-left" class="brandlogo" alt="" hidden>
   <div>
-    <div class="ttl" id="h-ttl"></div>
+    <h1 class="ttl" id="h-ttl"></h1>
     <div class="sub" id="h-sub"></div>
     <div class="sub meta-line" id="h-meta"></div>
   </div>
@@ -428,16 +448,25 @@
   <button type="button" class="hbtn" data-act="filter" id="filterbtn">Filter: All</button>
   <button type="button" class="hbtn" data-act="fold">Collapse all</button>
   <span class="sep" aria-hidden="true"></span>
-  <!-- export controls -->
-  <button type="button" class="hbtn" data-act="json">Export JSON</button>
-  <button type="button" class="hbtn" data-act="xlsx">Export Excel</button>
-  <button type="button" class="hbtn" data-act="html">Save HTML</button>
-  <button type="button" class="hbtn" data-act="pdf" title="Print → Save as PDF">Export PDF</button>
-  <button type="button" class="hbtn" data-act="copy">Copy summary</button>
-  <span class="sep" aria-hidden="true"></span>
-  <!-- data controls -->
-  <button type="button" class="hbtn" data-act="import">Import</button>
-  <button type="button" class="hbtn danger" data-act="reset">Reset</button>
+  <!-- export menu: one entry point, leak-check already gates every client-facing branch -->
+  <details class="menu" id="exportmenu">
+    <summary class="hbtn">Export ▾</summary>
+    <div class="menu-pop" role="menu" aria-label="Export">
+      <button type="button" data-act="json" role="menuitem">JSON <span class="mk">re-imports here</span></button>
+      <button type="button" data-act="xlsx" role="menuitem">Excel <span class="mk">.xlsx workbook</span></button>
+      <button type="button" data-act="html" role="menuitem">HTML snapshot <span class="mk">this page, filled in</span></button>
+      <button type="button" data-act="pdf" role="menuitem">PDF <span class="mk">print dialog</span></button>
+      <button type="button" data-act="copy" role="menuitem">Copy summary <span class="mk">markdown to clipboard</span></button>
+    </div>
+  </details>
+  <!-- overflow: the rarer, heavier data actions -->
+  <details class="menu" id="moremenu">
+    <summary class="hbtn" title="More actions" aria-label="More actions">⋯</summary>
+    <div class="menu-pop" role="menu" aria-label="More actions">
+      <button type="button" data-act="import" role="menuitem">Import JSON…</button>
+      <button type="button" data-act="reset" role="menuitem" class="danger">Reset board</button>
+    </div>
+  </details>
 </header>
 
 <main id="app"></main>
@@ -473,6 +502,7 @@ const fresh = stamp === SRC;   // compare raw strings, not parsed objects
 let M  = (fresh && restore(KEY)) || copy(FILE);
 let UI = Object.assign(DEFAULT_UI(), fresh && restore(KEY + ':ui'));
 let dirty = false;
+let storageFull = false;  // set when localStorage hits quota (usually inlined screenshots)
 let leakHits = null;      // last Leak-check results (transient view state, not persisted)
 let pendingExport = null; // which client-facing export is waiting behind the leak banner ('xlsx'|'html'|'copy')
 
@@ -501,13 +531,12 @@ function relLum(hex){
 function applyAccent(){
   const rs = document.documentElement.style;
   const hex = M.meta && M.meta.accent;
-  if(!hex){ ['--accent','--accent-soft','--on-accent','--head','--head-ink'].forEach(p=>rs.removeProperty(p)); return; }
+  if(!hex){ ['--accent','--accent-soft','--on-accent'].forEach(p=>rs.removeProperty(p)); return; }
   const on = relLum(hex) > .5 ? '#1f2733' : '#ffffff';
   rs.setProperty('--accent', hex);
   rs.setProperty('--accent-soft', `color-mix(in srgb, ${hex} 14%, var(--card))`);
   rs.setProperty('--on-accent', on);
-  rs.setProperty('--head', hex);
-  rs.setProperty('--head-ink', on);
+  // The header bar stays neutral; the brand colour lives on the meter fill, chips, tags + wordmark.
 }
 applyAccent();
 // native colour input fires on 'input' (live drag) and 'change' — wire both to write meta.accent
@@ -574,10 +603,19 @@ function rowVisible(s, r){
 
 function restore(k){ try{ const s = localStorage.getItem(k); return s ? JSON.parse(s) : null; }catch(e){ return null; } }
 function save(rerender){
-  localStorage.setItem(KEY, JSON.stringify(M));
-  localStorage.setItem(KEY + ':ui', JSON.stringify(UI));
-  localStorage.setItem(KEY + ':src', SRC);   // stamp state as belonging to this model version
-  dirty = true; $('#badge').classList.add('on');
+  dirty = true;
+  try{
+    localStorage.setItem(KEY, JSON.stringify(M));
+    localStorage.setItem(KEY + ':ui', JSON.stringify(UI));
+    localStorage.setItem(KEY + ':src', SRC);   // stamp state as belonging to this model version
+    storageFull = false;
+    $('#badge').textContent = '● unexported changes'; $('#badge').classList.add('on');
+  }catch(e){
+    // Quota exceeded (a few inlined screenshots ≈ the ~5MB cap). Keep the edit in memory and
+    // tell the user to export — do NOT let the throw break the click that triggered this save.
+    storageFull = true;
+    const b = $('#badge'); if(b){ b.textContent = '⚠ storage full — export to keep changes'; b.classList.add('on'); }
+  }
   if(rerender !== false){ meter(); }
 }
 window.addEventListener('beforeunload', e => { if(dirty){ e.preventDefault(); e.returnValue = ''; } });
@@ -587,22 +625,30 @@ const getP = p => p.split('.').reduce((o,k)=> o==null?undefined:o[k], M);
 function setP(p, v){ const ks=p.split('.'); const last=ks.pop(); const o=ks.reduce((o,k)=>o[k], M); if(o) o[last]=v; }
 
 /* ---- progress meter: fraction of grid rows whose "fill" column is answered ---- */
-function meter(){
+function progress(){
   let total = 0, done = 0;
   M.sections.forEach(s => {
     if(!s.rows || !s.fill) return;
     s.rows.forEach(r => { total++; if(String(r[s.fill]||'').trim()) done++; });
   });
+  return { total, done, complete: total > 0 && done === total };
+}
+function meter(){
+  const { total, done, complete } = progress();
   const pct = total ? Math.round(done/total*100) : 0;
   $('#fill').style.width = pct + '%';
-  $('#mtxt').textContent = done + '/' + total + ' resolved';
-  const m = $('#meter'); if(m){ m.setAttribute('aria-valuenow', pct); m.setAttribute('aria-valuetext', done+' of '+total+' rows resolved'); }
+  $('#mtxt').textContent = complete ? '✓ All ' + total + ' resolved' : done + '/' + total + ' resolved';
+  const m = $('#meter'); if(m){ m.classList.toggle('done', complete); m.setAttribute('aria-valuenow', pct);
+    m.setAttribute('aria-valuetext', complete ? 'All ' + total + ' rows resolved — session complete' : done + ' of ' + total + ' rows resolved'); }
 }
 
 /* ---- editable-text helpers ---- */
 // cew: a data cell — always editable (you fill it in during the session).
-function cew(path, val, ph){
-  return `<span class="edit" contenteditable="true" data-p="${path}" data-ph="${esc(ph||'')}">${esc(val==null?'':val)}</span>`;
+function cew(path, val, ph, label){
+  // label (or the placeholder) becomes the accessible name — data-ph renders via CSS :before, which is NOT a name
+  const name = label || ph;
+  const al = name ? ` aria-label="${esc(name)}"` : '';
+  return `<span class="edit" contenteditable="true"${al} data-p="${path}" data-ph="${esc(ph||'')}">${esc(val==null?'':val)}</span>`;
 }
 // ce: structural text (titles, headers, labels) — editable ONLY in Edit mode, plain text otherwise.
 function ce(path, val, ph){
@@ -622,7 +668,7 @@ function cell(s, si, r, ri, col){
     return `<td><span class="chip ${t}" role="button" tabindex="0" aria-pressed="${t!=='open'}" aria-label="Decision: ${esc(v||'not set')}" data-pick="${si}.${ri}.${col.f}.${col.pick}" title="${esc(M.vocab.help||'')}">${esc(v)}</span></td>`;
   }
   if(col.detail) return '';                        // detail lives behind the row toggle
-  if(col.edit) return `<td class="${col.f==='topic'?'topic':''}">${cew(path, v)}</td>`;
+  if(col.edit) return `<td class="${col.f==='topic'?'topic':''}">${cew(path, v, '', col.h)}</td>`;
   // everything else (e.g. topic) — editable only in Edit mode
   return `<td class="${col.f==='topic'?'topic':''}">${ce(path, v)}</td>`;
 }
@@ -741,7 +787,7 @@ function spotlight(sp){
   const addOpt = UI.edit ? `<div class="ec"><button class="add" data-addopt="1">+ option</button></div>` : '';
   return `<section class="card spot ${(!printAll && UI.shut.spot)?'shut':''}" data-card="spot">
     <div class="head" data-fold="spot"><button type="button" class="chev" data-foldbtn="spot" aria-expanded="${!UI.shut.spot}" aria-label="Toggle Decision to make">${UI.shut.spot?'▸':'▾'}</button>
-      <span class="h-ttl">Decision to make</span><span class="tag">spotlight</span></div>
+      <h2 class="h-ttl">Decision to make</h2><span class="tag">spotlight</span></div>
     <div class="body">
       <div class="q">${ce('spotlight.q', sp.q, 'the one question this session hangs on')}</div>
       <div class="opts">${opts}</div>${addOpt}
@@ -765,7 +811,7 @@ function sectionCard(s, si){
   const delSec = UI.edit ? delBtn('delsec', si, 'delete this section') : '';
   return `<section class="card ${(!printAll && UI.shut[s.id])?'shut':''}" data-card="${s.id}">
     <div class="head" data-fold="${s.id}"><button type="button" class="chev" data-foldbtn="${s.id}" aria-expanded="${!UI.shut[s.id]}" aria-label="Toggle section">${UI.shut[s.id]?'▸':'▾'}</button>
-      <span class="h-ttl">${ce(`sections.${si}.title`, s.title, 'section title')}</span>
+      <h2 class="h-ttl">${ce(`sections.${si}.title`, s.title, 'section title')}</h2>
       <span class="tag">${ce(`sections.${si}.tag`, s.tag||'', 'tag')}</span>
       <span class="grow" style="flex:1"></span>${delSec}</div>
     <div class="body">
@@ -782,7 +828,7 @@ function parkedCard(){
     : `<div class="pk-empty">Nothing parked yet. Hit “park” on any row to send a follow-up here.</div>`;
   return `<section class="card parked-card ${(!printAll && UI.shut.parked)?'shut':''}" data-card="parked">
     <div class="head" data-fold="parked"><button type="button" class="chev" data-foldbtn="parked" aria-expanded="${!UI.shut.parked}" aria-label="Toggle Parking lot">${UI.shut.parked?'▸':'▾'}</button>
-      <span class="h-ttl">Parking lot</span><span class="tag">follow-ups</span></div>
+      <h2 class="h-ttl">Parking lot</h2><span class="tag">follow-ups</span></div>
     <div class="body">${list}</div></section>`;
 }
 
@@ -851,8 +897,8 @@ function renameVocab(oldV, newV){
 // The leading "" (the unset state) is pinned at index 0 and hidden from the list.
 function pillEditor(){
   if(!UI.edit) return '';
-  const toneName = { open:'neutral', warn:'amber', ok:'green' };
-  const toneSel = cur => ['open','warn','ok'].map(t => `<option value="${t}"${t===cur?' selected':''}>${toneName[t]}</option>`).join('');
+  const toneName = { open:'neutral', warn:'amber', ok:'green (agreed)', done:'green ✓ (final)' };
+  const toneSel = cur => ['open','warn','ok','done'].map(t => `<option value="${t}"${t===cur?' selected':''}>${toneName[t]}</option>`).join('');
   const rows = (M.vocab.decision||[]).map((v,i) => ({v,i})).filter(x => x.v !== '').map(({v,i}) => `<div class="pill-row">
       <span class="ce" contenteditable="true" data-vocab="${i}" data-ph="value">${esc(v)}</span>
       <select data-vtone="${esc(v)}" title="colour / meter tone">${toneSel((M.vocab.tone||{})[v]||'open')}</select>
@@ -870,6 +916,14 @@ function logoControls(){
     return `<button class="mini" data-logo="${side}">${has?'Replace':'Add'} ${side} logo</button>`
          + (has ? `<button class="mini del" data-logoclr="${side}">clear</button>` : ''); };
   return `<div class="logoctl"><span class="lbl">Logos</span>${one('left')}${one('right')}</div>`;
+}
+
+// the quiet peak/end beat: once every row is resolved, the board says so and points at the exit
+function completeBanner(){
+  if(UI.edit) return '';
+  const { total, complete } = progress();
+  if(!total || !complete) return '';
+  return `<div class="donebar" role="status">✓ <span><b>Every row resolved.</b> The session's captured — use <b>Export</b> or <b>Copy summary</b> to take it with you.</span></div>`;
 }
 
 function render(){
@@ -890,7 +944,7 @@ function render(){
       <button class="add" data-addsec="seq">+ sequence</button>
       <button class="add" data-addsec="screens">+ screens</button></div>` : '';
   $('#app').innerHTML =
-    leakBanner() + imgBanner() +
+    completeBanner() + leakBanner() + imgBanner() +
     (UI.edit ? `<div class="editbar"><b>Edit mode.</b> Titles, headers, options and actors are now editable, and the dashed buttons add or remove rows, sections, options and steps. <b>Export JSON</b> when you're done to keep your template.${logoControls()}</div>` : '') +
     pillEditor() +
     spotlight(M.spotlight) +
@@ -1090,6 +1144,13 @@ document.querySelectorAll('header [data-act]').forEach(b => b.onclick = () => {
     }
   }
 });
+// toolbar dropdowns (<details class="menu">): close after an action, on outside-click, or Esc.
+// The menu buttons are static header markup, so binding once here is enough.
+function closeMenus(){ document.querySelectorAll('details.menu[open]').forEach(d => d.open = false); }
+document.querySelectorAll('.menu-pop button').forEach(b => b.addEventListener('click', closeMenus));
+document.addEventListener('click', e => { if(!e.target.closest('.menu')) closeMenus(); });
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeMenus(); });
+
 function clearDirty(){ dirty = false; $('#badge').classList.remove('on'); }
 // reset view-only chrome (filter + toolbar labels) — call after Reset/Import so a stale filter doesn't hide rows
 function resetView(){ filter = 'all';
