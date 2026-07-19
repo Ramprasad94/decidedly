@@ -382,7 +382,8 @@
      and it bakes into every Save HTML / PDF export. Not contenteditable: can't be edited or removed in-app. */
   .credit{display:flex; flex-direction:column; align-items:center; gap:9px; text-align:center; color:var(--mut); font-size:12px; line-height:1.6;
     padding:22px 20px 30px; border-top:1px solid var(--line); margin-top:40px}
-  .credit .made{font-size:12px; color:var(--mut); margin-bottom:-5px}   /* hugs the wordmark below it */
+  .madeby{display:inline-flex; align-items:center; gap:8px}   /* "Made with" + wordmark on one line */
+  .credit .made{font-size:12px; color:var(--mut)}
   .credit .wordmark{align-self:center}
   .credit .wm-txt{font-size:15px}
   .credit-line{max-width:640px}
@@ -504,6 +505,7 @@
 
 <main id="app"></main>
 <footer class="credit" role="contentinfo">
+  <span class="madeby">
   <span class="made">Made with</span>
   <span class="wordmark" title="Decidedly — the tool">
     <svg class="wm-ico" width="20" height="20" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
@@ -513,6 +515,7 @@
       <path d="M25 37 L30 42 L40 30.5" fill="none" stroke="#20242b" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
     <span class="wm-txt">Decidedly<span class="wm-dot">.</span></span>
+  </span>
   </span>
   <span class="credit-line">Created by Ramprasad Bommaganty · <a href="https://keepingupwiththecloud.com" target="_blank" rel="noopener">keepingupwiththecloud.com</a> · MIT-licensed — free to use, modify &amp; share.</span>
 </footer>
