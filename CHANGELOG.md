@@ -3,6 +3,23 @@
 All notable changes to **Decidedly** are recorded here. The tool is a single
 file (`board.html`); each version is a self-contained release of that file.
 
+## v1.2.1 — 2026-07-18
+
+### Changed
+- **The header shows one brand at a time.** Decidedly by default; the moment you
+  add a company logo it steps aside and your logo(s) take the identity slot, so
+  the tool's mark and a client's mark never sit side by side as if they were
+  partners. Decidedly's attribution moves to the footer, which now reads
+  **"Made with Decidedly."**
+
+### Fixed
+- **Adding a logo no longer breaks the toolbar.** A right-side logo used to float
+  into the middle of the header, and any logo could push the overflow (⋯) menu
+  onto a second row where its dropdown opened off-screen. The controls now stay
+  in one right-aligned cluster and logos live in a dedicated slot.
+- **The leak / image-export banner scrolls into view** when a client export is
+  blocked, so you can see why it stopped instead of nothing appearing to happen.
+
 ## v1.2 — 2026-07-18
 
 ### Added
