@@ -232,10 +232,11 @@
   .wm-txt{font-family:"Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     font-weight:600; font-size:16.5px; letter-spacing:-.01em; color:var(--head-ink)}
   .wm-dot{color:#a15d0e}
-  /* brand lockup: wordmark + optional co-brand logo strip, kept together on the left */
+  /* brand lockup: the Decidedly wordmark by default; once a company logo is set it steps aside and the
+     company logo(s) take the identity slot (footer credit keeps Decidedly's attribution). The two never coexist. */
   .brandlock{display:flex; align-items:center; gap:12px; min-width:0}
-  .cobrand{display:flex; align-items:center; gap:10px; padding-left:12px; border-left:1px solid var(--line)}
-  .cobrand[hidden]{display:none}
+  .cobrand{display:flex; align-items:center; gap:12px}
+  .cobrand[hidden], .wordmark[hidden]{display:none}
   /* right-side controls wrap as one right-aligned cluster; margin-left:auto keeps them right whether they sit on row 1 or wrap to row 2, so a logo can't strand a lone button (and its popup) at the far left */
   .controls{display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:10px; row-gap:8px; margin-left:auto}
   .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap; color:var(--head-ink)}
@@ -390,7 +391,7 @@
     background:none; cursor:pointer; vertical-align:middle}
   .swatch::-webkit-color-swatch-wrapper{padding:2px}
   .swatch::-webkit-color-swatch{border:none; border-radius:4px}
-  .brandlogo{max-height:30px; max-width:132px; width:auto; object-fit:contain; border-radius:4px; background:rgba(255,255,255,.9); padding:2px}
+  .brandlogo{max-height:34px; max-width:150px; width:auto; object-fit:contain; border-radius:4px; background:rgba(255,255,255,.9); padding:2px}
   .logoctl{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
 
   /* screenshot gallery (kind:"screens") */
@@ -443,10 +444,10 @@
 </style>
 
 <header>
-  <!-- brand lockup: the Decidedly wordmark plus, when set, a co-brand strip of client logos — kept together
-       and anchored left so a logo can never float into the middle of the bar or push the toolbar around -->
+  <!-- brand lockup: shows the Decidedly wordmark by default; once a company logo is added it steps aside and
+       the company logo(s) take the identity slot. Anchored left so a logo can never float into the middle. -->
   <span class="brandlock">
-    <span class="wordmark" title="Decidedly — the tool">
+    <span class="wordmark" id="toolmark" title="Decidedly — the tool">
       <svg class="wm-ico" width="24" height="24" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
         <rect x="4" y="4" width="56" height="56" rx="14" fill="#a15d0e"/>
         <path d="M20 15 h15 l10 10 v24 a2.5 2.5 0 0 1 -2.5 2.5 h-22.5 a2.5 2.5 0 0 1 -2.5 -2.5 V17.5 a2.5 2.5 0 0 1 2.5 -2.5 Z" fill="#fff"/>
@@ -1038,7 +1039,10 @@ function render(){
   ['left','right'].forEach(side => { const el = $('#logo-' + side); if(!el) return;
     const d = M.meta && M.meta[logoKey(side)];
     if(d){ el.src = d; el.hidden = false; anyLogo = true; } else { el.removeAttribute('src'); el.hidden = true; } });
-  const cb = $('#cobrand'); if(cb) cb.hidden = !anyLogo;   // hide the divider+strip entirely when no client logo is set
+  // Decidedly is the default mark; once a company logo is set it steps aside and the logo(s) take the slot.
+  // Attribution isn't lost — the footer credit always carries Decidedly.
+  const cb = $('#cobrand'); if(cb) cb.hidden = !anyLogo;
+  const tm = $('#toolmark'); if(tm) tm.hidden = anyLogo;
   meter();
   bind();
 }
