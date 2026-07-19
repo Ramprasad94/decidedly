@@ -273,6 +273,18 @@
   main{max-width:1160px; margin:24px auto 80px; padding:0 20px}
   .editbar{background:var(--warn-soft); border:1px solid var(--warn); color:var(--ink); border-radius:10px;
     font-size:13px; padding:10px 14px; margin:18px 0}
+  /* first-run welcome — same slim-bar language as editbar/donebar; names the sample, offers a blank start */
+  .welcomebar{margin:18px 0; border-radius:10px; padding:12px 16px; font-size:13.5px;
+    display:flex; gap:14px 18px; align-items:center; flex-wrap:wrap;
+    background:var(--accent-soft); border:1px solid var(--accent); color:var(--ink)}
+  .welcomebar .msg{flex:1 1 320px; min-width:0}
+  .welcomebar .wave{margin-right:8px}
+  .welcomebar .acts{display:flex; gap:8px; flex-shrink:0}
+  .welcomebar .wbtn{font-size:12.5px; border-radius:6px; padding:5px 12px; cursor:pointer; white-space:nowrap;
+    background:var(--card); border:1px solid var(--accent); color:var(--accent); font-weight:600}
+  .welcomebar .wbtn:hover{filter:brightness(1.04)}
+  .welcomebar .wbtn.ghost{border-color:var(--line); color:var(--mut); font-weight:400}
+  .welcomebar .wbtn.ghost:hover{border-color:var(--accent); color:var(--accent); filter:none}
   .leakbar{margin:18px 0; border-radius:10px; padding:10px 14px; font-size:13px}
   .leakbar.warn{background:var(--danger-soft); border:1px solid var(--danger)}
   .leakbar.ok{background:var(--accent-soft); border:1px solid var(--accent)}
@@ -437,7 +449,7 @@
     }
     header{position:static; box-shadow:none}
     header .hbtn, header .meter, header .badge, header .sep, .swatch, .menu,
-    .rowtools, .mini, .add, .x, .leakbar, .editbar, .chev{display:none !important}
+    .rowtools, .mini, .add, .x, .leakbar, .editbar, .welcomebar, .chev{display:none !important}
     .card{break-inside:avoid; box-shadow:none}
     tr, .shot{break-inside:avoid}
     body{background:#fff}
@@ -548,6 +560,14 @@ const fresh = stamp === SRC;   // compare raw strings, not parsed objects
 let M  = (fresh && restore(KEY)) || copy(FILE);
 let UI = Object.assign(DEFAULT_UI(), fresh && restore(KEY + ':ui'));
 let dirty = false;
+
+// First-run welcome: on the very first open of this file there's no saved state at all (stamp === null),
+// so we surface a one-time bar that names the sample content and offers a one-click blank start — the
+// Reset action otherwise hides in the ⋯ menu. A dismissal (or the first edit) retires it for good.
+// Exported/filled snapshots carry data-snapshot on <html>, so a client opening a finished board never sees it.
+const isSnapshot = document.documentElement.hasAttribute('data-snapshot');
+let welcomeDone; try{ welcomeDone = localStorage.getItem(KEY + ':welcomed'); }catch(e){ welcomeDone = null; }
+let showWelcome = stamp === null && !welcomeDone && !isSnapshot;
 let storageFull = false;  // set when localStorage hits quota (usually inlined screenshots)
 let leakHits = null;      // last Leak-check results (transient view state, not persisted)
 let pendingExport = null; // which client-facing export is waiting behind the leak banner ('xlsx'|'html'|'copy'|'pdf'|'png')
@@ -1012,6 +1032,18 @@ function completeBanner(){
   return `<div class="donebar" role="status">✓ <span><b>Every row resolved.</b> The session's captured — use <b>Export</b> or <b>Copy summary</b> to take it with you.</span></div>`;
 }
 
+// first-run only: name the sample content and offer a one-click blank start (Reset otherwise hides in ⋯).
+// Retires on dismiss, on the first edit (dirty), or in edit mode (the editbar takes over the same slot).
+function welcomeBanner(){
+  if(!showWelcome || UI.edit || dirty) return '';
+  return `<div class="welcomebar" role="status">
+    <span class="msg"><span class="wave">👋</span><b>This board opens with sample content</b> so you can see how a session looks. Explore it — or clear everything and start your own.</span>
+    <span class="acts">
+      <button type="button" class="wbtn" data-welcome="blank">Start a blank board</button>
+      <button type="button" class="wbtn ghost" data-welcome="dismiss">Got it</button>
+    </span></div>`;
+}
+
 function render(){
   document.body.classList.toggle('editing', !!UI.edit);
   $('#editbtn').classList.toggle('on', !!UI.edit);
@@ -1030,7 +1062,7 @@ function render(){
       <button class="add" data-addsec="seq">+ sequence</button>
       <button class="add" data-addsec="screens">+ screens</button></div>` : '';
   $('#app').innerHTML =
-    completeBanner() + leakBanner() + imgBanner() +
+    welcomeBanner() + completeBanner() + leakBanner() + imgBanner() +
     (UI.edit ? `<div class="editbar"><b>Edit mode.</b> Titles, headers, options and actors are now editable, and the dashed buttons add or remove rows, sections, options and steps. <b>Export JSON</b> when you're done to keep your template.${logoControls()}</div>` : '') +
     pillEditor() +
     spotlight(M.spotlight) +
@@ -1071,6 +1103,15 @@ function bind(){
     const cur = M.sections[+si].rows[+ri][field] || '';
     M.sections[+si].rows[+ri][field] = list[(list.indexOf(cur) + 1) % list.length];
     save(); render();
+  });
+
+  // first-run welcome bar — dismiss keeps the sample; "start blank" wipes to placeholders (no confirm:
+  // it's the first open, so there's nothing of the user's to lose). Either way it never returns.
+  document.querySelectorAll('[data-welcome]').forEach(el => el.onclick = () => {
+    showWelcome = false;
+    try{ localStorage.setItem(KEY + ':welcomed', '1'); }catch(e){}
+    if(el.dataset.welcome === 'blank'){ M = blankModel(); UI = DEFAULT_UI(); resetView(); save(false); clearDirty(); }
+    render();
   });
 
   // spotlight option pick (disabled while editing text)
@@ -1335,6 +1376,7 @@ function doCopy(){ copyText(summaryMd());
 /* ---- Save HTML: write the current model back into this page and download it ---- */
 function exportHtml(){
   const doc = document.documentElement.cloneNode(true);
+  doc.setAttribute('data-snapshot', '1');   // a filled snapshot is finished work, not a first run — never show the welcome bar
   // Never ship the denylist to a client: it's a plaintext list of your internal vocabulary.
   const clean = { ...M }; delete clean.leaks; delete clean['//leaks'];
   doc.querySelector('#model').textContent = '\n' + JSON.stringify(clean, null, 2) + '\n';
