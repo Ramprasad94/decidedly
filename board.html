@@ -232,7 +232,12 @@
   .wm-txt{font-family:"Charter","Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
     font-weight:600; font-size:16.5px; letter-spacing:-.01em; color:var(--head-ink)}
   .wm-dot{color:#a15d0e}
-  header .grow{flex:1}
+  /* brand lockup: wordmark + optional co-brand logo strip, kept together on the left */
+  .brandlock{display:flex; align-items:center; gap:12px; min-width:0}
+  .cobrand{display:flex; align-items:center; gap:10px; padding-left:12px; border-left:1px solid var(--line)}
+  .cobrand[hidden]{display:none}
+  /* right-side controls wrap as one right-aligned cluster; margin-left:auto keeps them right whether they sit on row 1 or wrap to row 2, so a logo can't strand a lone button (and its popup) at the far left */
+  .controls{display:flex; align-items:center; flex-wrap:wrap; justify-content:flex-end; gap:10px; row-gap:8px; margin-left:auto}
   .meter{display:flex; align-items:center; gap:8px; font-size:12.5px; white-space:nowrap; color:var(--head-ink)}
   .meter .bar{width:120px; height:7px; border-radius:5px; background:var(--chip); overflow:hidden}
   .meter .fill{display:block; height:100%; width:0; background:var(--accent); border-radius:5px; transition:width .3s}
@@ -385,7 +390,7 @@
     background:none; cursor:pointer; vertical-align:middle}
   .swatch::-webkit-color-swatch-wrapper{padding:2px}
   .swatch::-webkit-color-swatch{border:none; border-radius:4px}
-  .brandlogo{max-height:36px; max-width:150px; width:auto; object-fit:contain; border-radius:4px; background:rgba(255,255,255,.9); padding:2px}
+  .brandlogo{max-height:30px; max-width:132px; width:auto; object-fit:contain; border-radius:4px; background:rgba(255,255,255,.9); padding:2px}
   .logoctl{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px}
 
   /* screenshot gallery (kind:"screens") */
@@ -438,23 +443,30 @@
 </style>
 
 <header>
-  <span class="wordmark" title="Decidedly — the tool">
-    <svg class="wm-ico" width="24" height="24" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
-      <rect x="4" y="4" width="56" height="56" rx="14" fill="#a15d0e"/>
-      <path d="M20 15 h15 l10 10 v24 a2.5 2.5 0 0 1 -2.5 2.5 h-22.5 a2.5 2.5 0 0 1 -2.5 -2.5 V17.5 a2.5 2.5 0 0 1 2.5 -2.5 Z" fill="#fff"/>
-      <path d="M35 15 v7.5 a2.5 2.5 0 0 0 2.5 2.5 h7.5" fill="none" stroke="#a15d0e" stroke-width="2.4" stroke-linejoin="round"/>
-      <path d="M25 37 L30 42 L40 30.5" fill="none" stroke="#20242b" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-    <span class="wm-txt">Decidedly<span class="wm-dot">.</span></span>
+  <!-- brand lockup: the Decidedly wordmark plus, when set, a co-brand strip of client logos — kept together
+       and anchored left so a logo can never float into the middle of the bar or push the toolbar around -->
+  <span class="brandlock">
+    <span class="wordmark" title="Decidedly — the tool">
+      <svg class="wm-ico" width="24" height="24" viewBox="0 0 64 64" aria-hidden="true" focusable="false">
+        <rect x="4" y="4" width="56" height="56" rx="14" fill="#a15d0e"/>
+        <path d="M20 15 h15 l10 10 v24 a2.5 2.5 0 0 1 -2.5 2.5 h-22.5 a2.5 2.5 0 0 1 -2.5 -2.5 V17.5 a2.5 2.5 0 0 1 2.5 -2.5 Z" fill="#fff"/>
+        <path d="M35 15 v7.5 a2.5 2.5 0 0 0 2.5 2.5 h7.5" fill="none" stroke="#a15d0e" stroke-width="2.4" stroke-linejoin="round"/>
+        <path d="M25 37 L30 42 L40 30.5" fill="none" stroke="#20242b" stroke-width="4.4" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="wm-txt">Decidedly<span class="wm-dot">.</span></span>
+    </span>
+    <span class="cobrand" id="cobrand" aria-label="Session logos" hidden>
+      <img id="logo-left" class="brandlogo" alt="" hidden>
+      <img id="logo-right" class="brandlogo" alt="" hidden>
+    </span>
   </span>
-  <img id="logo-left" class="brandlogo" alt="" hidden>
   <div>
     <h1 class="ttl" id="h-ttl"></h1>
     <div class="sub" id="h-sub"></div>
     <div class="sub meta-line" id="h-meta"></div>
   </div>
-  <img id="logo-right" class="brandlogo" alt="" hidden>
-  <span class="grow"></span>
+  <!-- controls wrap as one right-aligned cluster, so a logo can't strand a lone button (and its popup) at the far left -->
+  <div class="controls">
   <span class="badge" id="badge" aria-live="polite">● unexported changes</span>
   <div class="meter" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="meter" aria-label="Rows resolved">
     <span id="mtxt"></span><span class="bar"><span class="fill" id="fill"></span></span></div>
@@ -485,6 +497,7 @@
       <button type="button" data-act="reset" role="menuitem" class="danger">Reset board</button>
     </div>
   </details>
+  </div>
 </header>
 
 <main id="app"></main>
@@ -978,8 +991,9 @@ function pillEditor(){
 }
 // edit-mode logo upload/clear controls (shown inside the edit bar)
 function logoControls(){
+  const label = { left: 'logo', right: 'second logo' };   // both render in the left co-brand strip now, not left/right of the bar
   const one = side => { const has = M.meta && M.meta[logoKey(side)];
-    return `<button class="mini" data-logo="${side}">${has?'Replace':'Add'} ${side} logo</button>`
+    return `<button class="mini" data-logo="${side}">${has?'Replace':'Add'} ${label[side]}</button>`
          + (has ? `<button class="mini del" data-logoclr="${side}">clear</button>` : ''); };
   return `<div class="logoctl"><span class="lbl">Logos</span>${one('left')}${one('right')}</div>`;
 }
@@ -1020,9 +1034,11 @@ function render(){
     (M.meta.footer ? `<p class="foot">${ce('meta.footer', M.meta.footer, 'footer')}</p>` : '');
   applyAccent();                                            // re-apply after Import/Reset swaps the model
   const ap = $('#accentpick'); if(ap) ap.value = (M.meta && M.meta.accent) || DEFAULT_ACCENT;
+  let anyLogo = false;
   ['left','right'].forEach(side => { const el = $('#logo-' + side); if(!el) return;
     const d = M.meta && M.meta[logoKey(side)];
-    if(d){ el.src = d; el.hidden = false; } else { el.removeAttribute('src'); el.hidden = true; } });
+    if(d){ el.src = d; el.hidden = false; anyLogo = true; } else { el.removeAttribute('src'); el.hidden = true; } });
+  const cb = $('#cobrand'); if(cb) cb.hidden = !anyLogo;   // hide the divider+strip entirely when no client logo is set
   meter();
   bind();
 }
