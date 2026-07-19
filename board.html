@@ -1238,7 +1238,7 @@ function flashSaved(){ const b = $('#badge'); b.textContent = '✓ Saved'; b.cla
 // labelled "Export anyway" override (see leakBanner / data-leakproceed) — never a silent second click.
 function guardLeaks(act){
   const hits = leakScan();
-  if(hits.length){ leakHits = hits; pendingExport = act; render(); return true; }
+  if(hits.length){ leakHits = hits; pendingExport = act; render(); revealBanner(); return true; }
   leakHits = null; pendingExport = null; return false;
 }
 
@@ -1248,7 +1248,10 @@ function guardLeaks(act){
 let imgGate = null;   // { n, act } while the image warning is showing
 function countImages(){ let n = 0; const m = M.meta||{}; if(m.logoLeft) n++; if(m.logoRight) n++;
   M.sections.forEach(s => { if(s.shots) n += s.shots.filter(x => x && x.img).length; }); return n; }
-function guardImages(act){ const n = countImages(); if(n > 0){ imgGate = { n, act }; render(); return true; } imgGate = null; return false; }
+function guardImages(act){ const n = countImages(); if(n > 0){ imgGate = { n, act }; render(); revealBanner(); return true; } imgGate = null; return false; }
+// a blocked client export renders its banner at the top of the board — scroll it into view so the
+// block is never mistaken for a dead button (both gates use .leakbar.warn)
+function revealBanner(){ document.querySelector('.leakbar.warn')?.scrollIntoView({ behavior:'smooth', block:'center' }); }
 function imgBanner(){
   if(!imgGate) return '';
   const x = `<button class="close-x" data-imgclear="1" title="dismiss">×</button>`;
