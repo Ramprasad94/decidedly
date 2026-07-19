@@ -3,6 +3,17 @@
 All notable changes to **Decidedly** are recorded here. The tool is a single
 file (`board.html`); each version is a self-contained release of that file.
 
+## v1.2.2 — 2026-07-19
+
+### Added
+- **A first-run welcome bar.** The board opens full of the OmniCart sample, and
+  "Reset board" hides in the ⋯ overflow menu — so a first-time opener had no
+  obvious way to clear it and start their own session. On the very first open, a
+  slim, dismissible bar now names the sample content and offers a one-click
+  **Start a blank board**. It retires for good once dismissed, on your first
+  edit, or when you enter Edit mode, and never appears on an exported snapshot a
+  client opens.
+
 ## v1.2.1 — 2026-07-18
 
 ### Changed
